@@ -1,0 +1,90 @@
+{
+  "name": "blink",
+  "productName": "Blink",
+  "version": "1.0.0",
+  "description": "A lightweight tray app that reminds you to blink, drink water, stretch and rest your eyes, with animated on-screen cues.",
+  "author": "Aashish Katwal",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/main/index.js",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "electron .",
+    "assets": "node scripts/generate-icons.js",
+    "icons:vendor": "node scripts/vendor-icons.js",
+    "lint": "eslint .",
+    "test": "node --test \"test/**/*.test.js\"",
+    "predist": "npm run assets",
+    "dist": "electron-builder --publish never"
+  },
+  "dependencies": {
+    "koffi": "^3.3.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.11.0",
+    "globals": "^17.13.0",
+    "lucide": "^1.49.0"
+  },
+  "build": {
+    "appId": "com.blink.app",
+    "productName": "Blink",
+    "copyright": "Copyright © 2026 Aashish Katwal",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/koffi/**"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": false,
+      "artifactName": "Blink-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.healthcare-fitness",
+      "artifactName": "Blink-${version}-${arch}.${ext}",
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "artifactName": "Blink-${version}.${ext}"
+    }
+  }
+}
