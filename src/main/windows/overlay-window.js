@@ -9,7 +9,7 @@ import { screen } from 'electron';
 import { Push } from '../../shared/constants.js';
 import { MAX_QUEUED_REMINDERS, Paths, Timing } from '../constants.js';
 import { overlayBounds } from '../core/placement.js';
-import { createWindow, sendTo, WindowRole } from './window-factory.js';
+import { createWindow, WindowRole } from './window-factory.js';
 
 /**
  * @typedef {object} Placement
@@ -77,7 +77,8 @@ export class OverlayWindow {
     const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
     win.setBounds(overlayBounds(display.workArea, placement.position, placement.scale));
     win.showInactive();
-    sendTo(win, Push.SHOW, request);
+    // Sent directly: `ready` resolves on load, while `isLoading()` stays true a moment longer.
+    win.webContents.send(Push.SHOW, request);
     this.sceneTimer = setTimeout(() => this.finish(request), request.durationMs + Timing.OVERLAY_EXIT_MS);
   }
 

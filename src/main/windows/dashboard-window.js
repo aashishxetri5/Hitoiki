@@ -57,8 +57,10 @@ export class DashboardWindow {
    * @returns {void}
    */
   destroy() {
-    if (this.win && !this.win.isDestroyed()) this.win.destroy();
+    const { win } = this;
+    // Forgetting the window first tells the `closed` handler this was not the user.
     this.win = null;
+    if (win && !win.isDestroyed()) win.destroy();
   }
 
   /**
@@ -80,7 +82,8 @@ export class DashboardWindow {
     win.loadFile(Paths.DASHBOARD_HTML);
     win.once('ready-to-show', () => win.show());
     win.on('closed', () => {
-      if (this.win === win) this.win = null;
+      if (this.win !== win) return;
+      this.win = null;
       app.dock?.hide();
       this.onClose();
     });
