@@ -51,6 +51,14 @@ export function formatCountdown(ms) {
 }
 
 /**
+ * @param {number} fraction - Value from 0 to 1 (or beyond).
+ * @returns {string} The value as a whole percentage, e.g. `70%`.
+ */
+export function formatPercent(fraction) {
+  return `${Math.round(fraction * 100)}%`;
+}
+
+/**
  * @param {number} timestamp - Milliseconds since the epoch.
  * @returns {string} Local time of day, e.g. `3:40 PM`.
  */

@@ -3,9 +3,57 @@
  * control maps to which setting.
  */
 
-import { $$ } from '../../shared/dom.js';
+import { $$, h } from '../../shared/dom.js';
+import { icon } from '../../shared/icons.js';
 
 /** @typedef {import('../store.js').Store} Store */
+
+/**
+ * @typedef {object} Choice
+ * @property {string} value - Value reported on selection.
+ * @property {string} label - Accessible name (and visible text unless `iconOnly`).
+ * @property {string} [icon] - Icon shown before the label.
+ * @property {boolean} [iconOnly] - Show only the icon (the label stays as its accessible name).
+ */
+
+/**
+ * Builds a single-choice button group (`role="radiogroup"`) with arrow-key navigation.
+ * @param {HTMLElement} container - Element that becomes the group.
+ * @param {Choice[]} choices - Options in order.
+ * @param {object} config
+ * @param {string} config.className - Class for each button.
+ * @param {(value: string) => void} config.onSelect - Called when the user picks an option.
+ * @param {number} [config.iconSize=16] - Icon size in pixels.
+ * @returns {(value: string) => void} Marks a value as the selected one.
+ */
+export function createChoiceGroup(container, choices, { className, onSelect, iconSize = 16 }) {
+  const buttons = choices.map((choice) => h('button', {
+    className,
+    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', 'aria-label': choice.iconOnly ? choice.label : null, title: choice.iconOnly ? choice.label : null, tabindex: -1 },
+    dataset: { value: choice.value },
+    on: { click: () => onSelect(choice.value) },
+  }, [choice.icon ? icon(choice.icon, { size: iconSize }) : null, choice.iconOnly ? null : choice.label]));
+  container.replaceChildren(...buttons);
+
+  container.addEventListener('keydown', (event) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+    const current = buttons.indexOf(/** @type {HTMLElement} */ (document.activeElement));
+    if (!step || current < 0) return;
+    event.preventDefault();
+    const next = buttons[(current + step + buttons.length) % buttons.length];
+    next.focus();
+    onSelect(next.dataset.value);
+  });
+
+  return (value) => {
+    const selected = buttons.find((b) => b.dataset.value === value);
+    for (const b of buttons) {
+      b.setAttribute('aria-checked', String(b === selected));
+      // Only one button is in the tab order, as for native radio groups.
+      b.tabIndex = b === (selected ?? buttons[0]) ? 0 : -1;
+    }
+  };
+}
 
 /**
  * Connects every `input.switch[data-setting]` under a root to its boolean setting.
