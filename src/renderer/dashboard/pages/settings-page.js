@@ -42,6 +42,6 @@ export function mountSettingsPage(store) {
   store.subscribe(['info'], ({ info }) => {
     if (!info) return;
     $('#about').textContent = `Blink ${info.version}`;
-    $('#data-path').textContent = `Settings file: ${info.dataFolder}/${info.settingsFile}`;
+    $('#data-path').textContent = `Settings file: ${info.settingsPath}`;
   });
 }

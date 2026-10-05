@@ -2,6 +2,7 @@
  * @file IPC handlers for the dashboard window.
  */
 
+import path from 'node:path';
 import { app, ipcMain } from 'electron';
 import { Invoke, Send } from '../../shared/constants.js';
 import { Paths } from '../constants.js';
@@ -64,8 +65,7 @@ export function registerIpc({ settings, controller, fullscreenSupported }) {
     version: app.getVersion(),
     platform: process.platform,
     icon: appIcon().toDataURL(),
-    dataFolder: app.getPath('userData'),
-    settingsFile: Paths.SETTINGS_FILE,
+    settingsPath: path.join(app.getPath('userData'), Paths.SETTINGS_FILE),
     fullscreenSupported,
   }));
   handle(Invoke.PAUSE, (optionId) => {
