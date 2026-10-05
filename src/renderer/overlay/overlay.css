@@ -152,8 +152,8 @@ html, body {
 .art-stretch .stretcher { animation: grow 1.7s ease-in-out infinite alternate; transform-box: view-box; transform-origin: 100px 180px; }
 .art-stretch .arm-left, .art-stretch .arm-right { stroke: var(--accent); }
 
-@keyframes reach-left { from { transform: rotate(24deg); } to { transform: rotate(168deg); } }
-@keyframes reach-right { from { transform: rotate(-24deg); } to { transform: rotate(-168deg); } }
+@keyframes reach-left { from { transform: rotate(24deg); } to { transform: rotate(150deg); } }
+@keyframes reach-right { from { transform: rotate(-24deg); } to { transform: rotate(-150deg); } }
 @keyframes grow { to { transform: scaleY(1.04); } }
 
 /* ---------- Breathe ---------- */

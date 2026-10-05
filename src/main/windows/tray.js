@@ -5,7 +5,7 @@
 import { Menu, Tray } from 'electron';
 import { PAUSE_OPTIONS } from '../../shared/catalog.js';
 import { APP_NAME, ScheduleStatus } from '../../shared/constants.js';
-import { formatClock, formatInterval } from '../../shared/format.js';
+import { describeSchedule, formatInterval } from '../../shared/format.js';
 import { IS_MAC } from '../constants.js';
 import { trayIcon } from './app-icons.js';
 
@@ -18,23 +18,6 @@ import { trayIcon } from './app-icons.js';
  * @property {() => void} resume
  * @property {() => void} quit
  */
-
-/**
- * @param {import('../../shared/types.js').RuntimeState} runtime - What the schedule is doing.
- * @returns {string} One-line description of the schedule.
- */
-export function describeStatus(runtime) {
-  switch (runtime.status) {
-    case ScheduleStatus.PAUSED:
-      return `Paused until ${formatClock(runtime.pausedUntil)}`;
-    case ScheduleStatus.OUTSIDE_HOURS:
-      return runtime.resumeAt ? `Outside active hours, resumes ${formatClock(runtime.resumeAt)}` : 'Outside active hours';
-    case ScheduleStatus.OFF:
-      return 'Reminders are off';
-    default:
-      return 'Reminders are on';
-  }
-}
 
 /** The tray icon, its tooltip and its menu. */
 export class TrayController {
@@ -57,7 +40,7 @@ export class TrayController {
    */
   update({ settings, runtime }) {
     const { actions } = this;
-    const status = describeStatus(runtime);
+    const status = describeSchedule(runtime);
     const paused = runtime.status === ScheduleStatus.PAUSED;
     this.tray.setImage(trayIcon(runtime.status !== ScheduleStatus.ACTIVE));
     this.tray.setToolTip(`${APP_NAME}: ${status}`);

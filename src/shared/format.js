@@ -1,6 +1,9 @@
 /**
- * @file Pure formatting helpers for intervals, countdowns and clock times.
+ * @file Pure formatting helpers for intervals, countdowns, clock times and the
+ * schedule status line.
  */
+
+import { ScheduleStatus } from './constants.js';
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
@@ -53,4 +56,21 @@ export function formatCountdown(ms) {
  */
 export function formatClock(timestamp) {
   return new Date(timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+/**
+ * @param {import('./types.js').RuntimeState} runtime - What the schedule is doing.
+ * @returns {string} One-line description, e.g. `Paused until 3:40 PM`.
+ */
+export function describeSchedule(runtime) {
+  switch (runtime.status) {
+    case ScheduleStatus.PAUSED:
+      return `Paused until ${formatClock(runtime.pausedUntil)}`;
+    case ScheduleStatus.OUTSIDE_HOURS:
+      return runtime.resumeAt ? `Outside active hours, resumes ${formatClock(runtime.resumeAt)}` : 'Outside active hours';
+    case ScheduleStatus.OFF:
+      return 'Reminders are off';
+    default:
+      return 'Reminders are on';
+  }
 }

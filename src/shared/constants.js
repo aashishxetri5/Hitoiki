@@ -28,12 +28,14 @@ export const SoundId = Object.freeze({
 
 /** Where on the display a reminder appears. */
 export const OverlayPosition = Object.freeze({
-  CENTER: 'center',
-  TOP: 'top',
-  BOTTOM: 'bottom',
   TOP_LEFT: 'top-left',
+  TOP: 'top',
   TOP_RIGHT: 'top-right',
+  LEFT: 'left',
+  CENTER: 'center',
+  RIGHT: 'right',
   BOTTOM_LEFT: 'bottom-left',
+  BOTTOM: 'bottom',
   BOTTOM_RIGHT: 'bottom-right',
 });
 

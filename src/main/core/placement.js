@@ -11,12 +11,14 @@ const EDGE_MARGIN = 24;
 
 /** Horizontal and vertical anchor of each position. */
 const ANCHORS = Object.freeze({
-  [OverlayPosition.CENTER]: ['center', 'center'],
-  [OverlayPosition.TOP]: ['center', 'start'],
-  [OverlayPosition.BOTTOM]: ['center', 'end'],
   [OverlayPosition.TOP_LEFT]: ['start', 'start'],
+  [OverlayPosition.TOP]: ['center', 'start'],
   [OverlayPosition.TOP_RIGHT]: ['end', 'start'],
+  [OverlayPosition.LEFT]: ['start', 'center'],
+  [OverlayPosition.CENTER]: ['center', 'center'],
+  [OverlayPosition.RIGHT]: ['end', 'center'],
   [OverlayPosition.BOTTOM_LEFT]: ['start', 'end'],
+  [OverlayPosition.BOTTOM]: ['center', 'end'],
   [OverlayPosition.BOTTOM_RIGHT]: ['end', 'end'],
 });
 
