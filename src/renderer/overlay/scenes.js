@@ -78,45 +78,55 @@ const MARKUP = Object.freeze({
     <path class="floor" d="M56 184 H144"/>`,
 
   [SceneId.BREATHE]: () => `
-    <circle class="ring ring-outer" cx="100" cy="100" r="88"/>
-    <circle class="ring ring-mid" cx="100" cy="100" r="68"/>
-    <circle class="core" cx="100" cy="100" r="48"/>
-    <text class="word word-in" x="100" y="105" text-anchor="middle">Breathe in</text>
-    <text class="word word-out" x="100" y="105" text-anchor="middle">Breathe out</text>`,
+    <div class="ring ring-outer"></div>
+    <div class="ring ring-mid"></div>
+    <div class="core"></div>
+    <span class="word word-in">Breathe in</span>
+    <span class="word word-out">Breathe out</span>`,
 
   [SceneId.FOCUS]: () => `
-    <defs>
-      <clipPath id="view-clip"><circle cx="100" cy="100" r="70"/></clipPath>
-      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" class="sky-a"/><stop offset="100%" class="sky-b"/></linearGradient>
-    </defs>
-    <g clip-path="url(#view-clip)">
-      <rect x="20" y="20" width="160" height="160" fill="url(#sky)"/>
-      <circle class="sun" cx="134" cy="76" r="13"/>
-      <g class="far-range"><path class="mountain-far" d="M10 132 L58 80 L90 112 L124 68 L190 132 V190 H10 Z"/></g>
-      <path class="mountain-near" d="M10 152 L66 104 L110 148 L140 122 L190 156 V190 H10 Z"/>
-    </g>
-    <circle class="view-ring" cx="100" cy="100" r="70"/>
-    <circle class="pulse pulse-1" cx="100" cy="100" r="70"/>
-    <circle class="pulse pulse-2" cx="100" cy="100" r="70"/>`,
+    <svg class="view" viewBox="0 0 200 200">
+      <defs>
+        <clipPath id="view-clip"><circle cx="100" cy="100" r="70"/></clipPath>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" class="sky-a"/><stop offset="100%" class="sky-b"/></linearGradient>
+      </defs>
+      <g clip-path="url(#view-clip)">
+        <rect x="20" y="20" width="160" height="160" fill="url(#sky)"/>
+        <circle class="sun" cx="134" cy="76" r="13"/>
+        <g class="far-range"><path class="mountain-far" d="M10 132 L58 80 L90 112 L124 68 L190 132 V190 H10 Z"/></g>
+        <path class="mountain-near" d="M10 152 L66 104 L110 148 L140 122 L190 156 V190 H10 Z"/>
+      </g>
+      <circle class="view-ring" cx="100" cy="100" r="70"/>
+    </svg>
+    <div class="pulse pulse-1"></div>
+    <div class="pulse pulse-2"></div>`,
 
   [SceneId.ICON]: ({ icon }) => `
-    <circle class="pulse pulse-1" cx="100" cy="100" r="54"/>
-    <circle class="pulse pulse-2" cx="100" cy="100" r="54"/>
-    <circle class="badge" cx="100" cy="100" r="54"/>
-    <g class="glyph-bob"><g class="glyph" transform="translate(64 64) scale(3)">${iconPaths(icon).map((d) => `<path d="${d}"/>`).join('')}</g></g>`,
+    <div class="pulse pulse-1"></div>
+    <div class="pulse pulse-2"></div>
+    <div class="badge"><svg class="glyph" viewBox="0 0 24 24">${iconPaths(icon).map((d) => `<path d="${d}"/>`).join('')}</svg></div>`,
 });
 
 /**
- * Builds the SVG for a scene.
+ * Scenes whose moving parts are HTML elements instead of SVG shapes. The browser can
+ * animate a separate element's transform and opacity without redrawing anything, which
+ * keeps endless loops (breathing, pulses) almost free; motion inside one SVG redraws
+ * the whole drawing every frame.
+ */
+const HTML_SCENES = new Set([SceneId.BREATHE, SceneId.FOCUS, SceneId.ICON]);
+
+/**
+ * Builds the artwork for a scene.
  * @param {import('../../shared/types.js').ShowRequest} request - The reminder being shown.
- * @returns {SVGSVGElement} The scene artwork.
+ * @returns {Element} The scene artwork.
  */
 export function buildScene(request) {
-  const markup = MARKUP[request.scene] ?? MARKUP[SceneId.ICON];
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 200 200');
-  svg.setAttribute('class', `art art-${MARKUP[request.scene] ? request.scene : SceneId.ICON}`);
-  svg.setAttribute('aria-hidden', 'true');
-  svg.innerHTML = markup(request);
-  return svg;
+  const scene = MARKUP[request.scene] ? request.scene : SceneId.ICON;
+  const isHtml = HTML_SCENES.has(scene);
+  const root = isHtml ? document.createElement('div') : document.createElementNS(SVG_NS, 'svg');
+  if (!isHtml) root.setAttribute('viewBox', '0 0 200 200');
+  root.setAttribute('class', `art art-${scene}${isHtml ? ' art-html' : ''}`);
+  root.setAttribute('aria-hidden', 'true');
+  root.innerHTML = MARKUP[scene](request);
+  return root;
 }

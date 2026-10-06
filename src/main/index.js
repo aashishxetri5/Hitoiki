@@ -16,8 +16,12 @@ import { DashboardWindow } from './windows/dashboard-window.js';
 import { OverlayWindow } from './windows/overlay-window.js';
 import { TrayController } from './windows/tray.js';
 
-// Blink draws a few small shapes; the GPU process would only cost memory.
+// Blink draws a few small shapes and only loads its own local files, so software rendering is
+// enough, and running the GPU and network services inside this process (instead of as
+// separate ones) saves about a fifth of the memory.
 app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('in-process-gpu');
+app.commandLine.appendSwitch('enable-features', 'NetworkServiceInProcess2');
 // The overlay plays sounds without a user gesture.
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 

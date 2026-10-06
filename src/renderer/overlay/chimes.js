@@ -23,8 +23,8 @@ const SILENT = 0.0001;
  * @property {[number, number][]} [partials] - Overtones as [frequency ratio, level].
  */
 
-/** @type {Readonly<Record<string, readonly Note[]>>} */
-const RECIPES = Object.freeze({
+/** @type {Readonly<Record<string, readonly Note[]>>} Sound id → the notes that make it up (exported for tests). */
+export const RECIPES = Object.freeze({
   [SoundId.TICK]: [{ at: 0, freq: 1500, duration: 0.07, attack: 0.003 }],
   [SoundId.CHIME]: [
     { at: 0, freq: 784, duration: 0.9, partials: [[1, 1], [2, 0.25]] },

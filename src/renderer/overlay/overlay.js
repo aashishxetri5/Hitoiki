@@ -11,7 +11,7 @@ import { playSound } from './chimes.js';
 import { buildScene } from './scenes.js';
 
 /** Length of the fade-out; matches `scene-out` in overlay.css. */
-const EXIT_MS = 350;
+const EXIT_MS = 250;
 
 const stage = $('#stage');
 let leaveTimer = 0;
