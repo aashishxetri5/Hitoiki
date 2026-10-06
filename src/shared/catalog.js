@@ -13,14 +13,14 @@ import { Limits, SceneId, SoundId } from './constants.js';
  * @property {string} accent - Colour of the scene's glow and highlights.
  */
 
-/** @type {readonly Scene[]} */
+/** @type {readonly Scene[]} Each scene has its own colour, so a reminder is recognisable at a glance. */
 export const SCENES = Object.freeze([
-  { id: SceneId.BLINK, name: 'Blinking eye', icon: 'eye', accent: '#38bdf8' },
-  { id: SceneId.WATER, name: 'Water glass', icon: 'glass-water', accent: '#3b9cff' },
+  { id: SceneId.BLINK, name: 'Blinking eye', icon: 'eye', accent: '#5b8def' },
+  { id: SceneId.WATER, name: 'Water glass', icon: 'glass-water', accent: '#22c3d6' },
   { id: SceneId.POSTURE, name: 'Sit tall', icon: 'accessibility', accent: '#f5a524' },
   { id: SceneId.STRETCH, name: 'Stretch', icon: 'person-standing', accent: '#a78bfa' },
-  { id: SceneId.BREATHE, name: 'Breathe', icon: 'wind', accent: '#2dd4bf' },
-  { id: SceneId.FOCUS, name: 'Look far away', icon: 'mountain', accent: '#4ade80' },
+  { id: SceneId.BREATHE, name: 'Breathe', icon: 'wind', accent: '#34d399' },
+  { id: SceneId.FOCUS, name: 'Look far away', icon: 'mountain', accent: '#ff8a5b' },
   { id: SceneId.ICON, name: 'Icon', icon: 'bell', accent: '#f472b6' },
 ]);
 
@@ -30,6 +30,15 @@ export const SCENES = Object.freeze([
  */
 export function sceneById(id) {
   return SCENES.find((scene) => scene.id === id) ?? SCENES[SCENES.length - 1];
+}
+
+/**
+ * @param {{ scene: string, icon: string }} reminder - A reminder (or a draft of one).
+ * @returns {{ icon: string, accent: string }} The icon and colour that identify it in lists and rings.
+ */
+export function lookOf({ scene, icon }) {
+  const found = sceneById(scene);
+  return { icon: found.id === SceneId.ICON ? icon : found.icon, accent: found.accent };
 }
 
 /** Icons a user can pick for a reminder that uses the generic icon scene. */
@@ -99,16 +108,17 @@ export function reminderFromPreset(preset, { id = preset.id, enabled = true } = 
 /**
  * @typedef {object} PauseOption
  * @property {string} id
- * @property {string} label
+ * @property {string} label - Full wording, for menus.
+ * @property {string} shortLabel - Compact wording, for buttons.
  * @property {number | null} minutes - Length of the pause, or null for "until midnight".
  */
 
 /** @type {readonly PauseOption[]} */
 export const PAUSE_OPTIONS = Object.freeze([
-  { id: '15m', label: '15 minutes', minutes: 15 },
-  { id: '30m', label: '30 minutes', minutes: 30 },
-  { id: '1h', label: '1 hour', minutes: 60 },
-  { id: 'today', label: 'For the rest of today', minutes: null },
+  { id: '15m', label: '15 minutes', shortLabel: '15 min', minutes: 15 },
+  { id: '30m', label: '30 minutes', shortLabel: '30 min', minutes: 30 },
+  { id: '1h', label: '1 hour', shortLabel: '1 hour', minutes: 60 },
+  { id: 'today', label: 'For the rest of today', shortLabel: 'Rest of today', minutes: null },
 ]);
 
 /**

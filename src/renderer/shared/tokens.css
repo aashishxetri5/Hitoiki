@@ -1,53 +1,48 @@
-/* Design tokens shared by the app's windows. Dark is the default theme. */
+/* Design tokens shared by the app's windows.
 
-:root {
-  --bg: #0d131c;
-  --surface: #141c28;
-  --surface-2: #1b2535;
-  --surface-3: #263349;
-  --border: #243044;
-  --text: #e8eef7;
-  --text-muted: #93a1b5;
-  --accent: #38bdf8;
-  --accent-strong: #7dd3fc;
-  --accent-soft: rgba(56, 189, 248, 0.14);
-  --on-accent: #04121f;
-  --success: #34d399;
-  --warning: #f5a524;
-  --danger: #fb7185;
+   The interface is deliberately quiet: warm paper by day, twilight by night, and ink-coloured
+   controls. Colour is reserved for the reminders themselves, so it always means something. */
 
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 16px;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-strong);
-
-  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --font-mono: "Cascadia Mono", "SF Mono", Consolas, monospace;
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-
-  color-scheme: dark;
+@font-face {
+  font-family: "Fraunces";
+  src: url("fonts/fraunces-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f3f6fb;
-    --surface: #ffffff;
-    --surface-2: #eef2f8;
-    --surface-3: #e0e7f2;
-    --border: #dbe3ef;
-    --text: #101a2b;
-    --text-muted: #566780;
-    --accent: #0284c7;
-    --accent-strong: #0369a1;
-    --accent-soft: rgba(2, 132, 199, 0.1);
-    --on-accent: #ffffff;
-    --success: #059669;
-    --warning: #b45309;
-    --danger: #e11d48;
-    --shadow: 0 6px 18px rgba(16, 26, 43, 0.1);
-    color-scheme: light;
-  }
+:root {
+  /* Follows the system theme. */
+  color-scheme: light dark;
+
+  --bg: light-dark(#f6f1ea, #15131a);
+  --surface: light-dark(#fffdf9, #1f1c26);
+  --surface-2: light-dark(#f4ede3, #292531);
+  --surface-3: light-dark(#e8dfd2, #363141);
+  --line: light-dark(rgba(31, 36, 48, 0.09), rgba(255, 244, 230, 0.09));
+
+  --ink: light-dark(#1f2430, #f4efe8);
+  --ink-2: light-dark(#4a5160, #cfc8d6);
+  --muted: light-dark(#6f685d, #a29cad);
+  --on-ink: light-dark(#fffdf9, #15131a);
+
+  --danger: light-dark(#c2334d, #ff8aa0);
+  --success: light-dark(#2f8f5b, #5fd39a);
+  --warning: light-dark(#a35f00, #f5b04a);
+
+  --shadow-color: light-dark(rgba(70, 45, 10, 0.16), rgba(0, 0, 0, 0.55));
+  --shadow-1: 0 1px 2px color-mix(in srgb, var(--shadow-color) 50%, transparent), 0 10px 28px -10px var(--shadow-color);
+  --shadow-2: 0 28px 70px -14px var(--shadow-color);
+
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 26px;
+  --pill: 999px;
+
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -56,8 +51,8 @@
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--text);
-  font: 14px/1.5 var(--font);
+  color: var(--ink);
+  font: 15px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
 }
 

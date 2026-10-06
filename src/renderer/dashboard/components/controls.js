@@ -1,6 +1,6 @@
 /**
- * @file Bindings between form controls and settings, so pages only declare which
- * control maps to which setting.
+ * @file Bindings between form controls and settings, so sheets only declare which
+ * control maps to which setting, plus small reusable controls.
  */
 
 import { $$, h } from '../../shared/dom.js';
@@ -14,6 +14,7 @@ import { icon } from '../../shared/icons.js';
  * @property {string} label - Accessible name (and visible text unless `iconOnly`).
  * @property {string} [icon] - Icon shown before the label.
  * @property {boolean} [iconOnly] - Show only the icon (the label stays as its accessible name).
+ * @property {string} [accent] - Colour exposed to CSS as `--c`.
  */
 
 /**
@@ -24,15 +25,21 @@ import { icon } from '../../shared/icons.js';
  * @param {string} config.className - Class for each button.
  * @param {(value: string) => void} config.onSelect - Called when the user picks an option.
  * @param {number} [config.iconSize=16] - Icon size in pixels.
+ * @param {(choice: Choice) => (Node | string | null)[]} [config.render] - Custom button content.
  * @returns {(value: string) => void} Marks a value as the selected one.
  */
-export function createChoiceGroup(container, choices, { className, onSelect, iconSize = 16 }) {
-  const buttons = choices.map((choice) => h('button', {
-    className,
-    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', 'aria-label': choice.iconOnly ? choice.label : null, title: choice.iconOnly ? choice.label : null, tabindex: -1 },
-    dataset: { value: choice.value },
-    on: { click: () => onSelect(choice.value) },
-  }, [choice.icon ? icon(choice.icon, { size: iconSize }) : null, choice.iconOnly ? null : choice.label]));
+export function createChoiceGroup(container, choices, { className, onSelect, iconSize = 16, render }) {
+  const content = render ?? ((choice) => [choice.icon ? icon(choice.icon, { size: iconSize }) : null, choice.iconOnly ? null : choice.label]);
+  const buttons = choices.map((choice) => {
+    const button = h('button', {
+      className,
+      attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', 'aria-label': choice.iconOnly ? choice.label : null, title: choice.iconOnly ? choice.label : null, tabindex: -1 },
+      dataset: { value: choice.value },
+      on: { click: () => onSelect(choice.value) },
+    }, content(choice));
+    if (choice.accent) button.style.setProperty('--c', choice.accent);
+    return button;
+  });
   container.replaceChildren(...buttons);
 
   container.addEventListener('keydown', (event) => {
@@ -53,6 +60,20 @@ export function createChoiceGroup(container, choices, { className, onSelect, ico
       b.tabIndex = b === (selected ?? buttons[0]) ? 0 : -1;
     }
   };
+}
+
+/**
+ * Shows a range input's position as its filled track and updates its readout.
+ * @param {HTMLInputElement} input - Range input.
+ * @param {HTMLOutputElement} output - Value readout.
+ * @param {string} text - Readout text.
+ * @returns {void}
+ */
+export function paintRange(input, output, text) {
+  const min = Number(input.min);
+  const max = Number(input.max);
+  input.style.setProperty('--fill', `${((Number(input.value) - min) / (max - min || 1)) * 100}%`);
+  output.textContent = text;
 }
 
 /**
@@ -85,22 +106,16 @@ export function bindSwitches(store, root) {
  * @returns {void}
  */
 export function bindRange(store, input, output, key, { toSetting, toSlider, format }) {
-  const min = Number(input.min);
-  const max = Number(input.max);
-  const paint = (sliderValue) => {
-    input.style.setProperty('--fill', `${((sliderValue - min) / (max - min)) * 100}%`);
-    output.textContent = format(toSetting(sliderValue));
-  };
   let frame = 0;
   input.addEventListener('input', () => {
-    paint(Number(input.value));
+    paintRange(input, output, format(toSetting(Number(input.value))));
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(() => store.saveSettings({ [key]: toSetting(Number(input.value)) }));
   });
   store.subscribe(['settings'], ({ settings }) => {
     if (!settings || document.activeElement === input) return;
     input.value = String(toSlider(settings[key]));
-    paint(Number(input.value));
+    paintRange(input, output, format(toSetting(Number(input.value))));
   });
 }
 
@@ -115,4 +130,15 @@ export function setDisabled(container, disabled) {
   for (const control of container.querySelectorAll('input, select, button')) {
     /** @type {HTMLInputElement} */ (control).disabled = disabled;
   }
+}
+
+/**
+ * Next value for a stepper: single steps while small, then jumps to the next multiple of five.
+ * @param {number} value - Current value.
+ * @param {1 | -1} direction - Which way to step.
+ * @returns {number} The new value (never below 1).
+ */
+export function stepValue(value, direction) {
+  if (direction > 0) return value < 9 ? value + 1 : (Math.floor(value / 5) + 1) * 5;
+  return value <= 10 ? Math.max(1, value - 1) : (Math.ceil(value / 5) - 1) * 5;
 }

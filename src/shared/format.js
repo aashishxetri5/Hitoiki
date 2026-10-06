@@ -51,6 +51,18 @@ export function formatCountdown(ms) {
 }
 
 /**
+ * @param {number} ms - Time remaining.
+ * @returns {string} Timer-style countdown such as `0:04`, `12:04` or `1:02:09`.
+ */
+export function formatTimer(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const hours = Math.floor(total / SECONDS_PER_HOUR);
+  const minutes = Math.floor((total % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+  const seconds = String(total % SECONDS_PER_MINUTE).padStart(2, '0');
+  return hours ? `${hours}:${String(minutes).padStart(2, '0')}:${seconds}` : `${minutes}:${seconds}`;
+}
+
+/**
  * @param {number} fraction - Value from 0 to 1 (or beyond).
  * @returns {string} The value as a whole percentage, e.g. `70%`.
  */

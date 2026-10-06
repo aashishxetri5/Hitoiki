@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { overlayBounds } from '../src/main/core/placement.js';
-import { formatCountdown, formatInterval, splitInterval } from '../src/shared/format.js';
+import {
+  formatCountdown, formatInterval, formatTimer, splitInterval,
+} from '../src/shared/format.js';
 
 test('intervals use the largest unit that divides evenly', () => {
   assert.deepEqual(splitInterval(4), { value: 4, unit: 'seconds' });
@@ -26,6 +28,15 @@ test('countdowns are compact', () => {
   assert.equal(formatCountdown(3_720_000), '1h 02m');
   assert.equal(formatCountdown(1), '1s', 'partial seconds round up');
   assert.equal(formatCountdown(-5), '0s');
+});
+
+test('timers read like a clock', () => {
+  assert.equal(formatTimer(0), '0:00');
+  assert.equal(formatTimer(4_000), '0:04');
+  assert.equal(formatTimer(724_000), '12:04');
+  assert.equal(formatTimer(3_729_000), '1:02:09');
+  assert.equal(formatTimer(1_001), '0:02', 'partial seconds round up');
+  assert.equal(formatTimer(-1), '0:00');
 });
 
 const AREA = { x: 100, y: 50, width: 1920, height: 1030 };

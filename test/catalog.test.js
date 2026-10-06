@@ -41,10 +41,10 @@ test('every scene id has a catalog entry, and templates only use known scenes', 
 
 test('the overlay can draw and style every scene', () => {
   const scenes = read('src/renderer/overlay/scenes.js');
-  const css = read('src/renderer/overlay/overlay.css');
+  const css = read('src/renderer/overlay/scenes.css');
   for (const [key, id] of Object.entries(SceneId)) {
     assert.ok(scenes.includes(`[SceneId.${key}]:`), `scenes.js has no artwork for ${key}`);
-    assert.ok(css.includes(`.art-${id}`), `overlay.css has no styles for ${id}`);
+    assert.ok(css.includes(`.art-${id}`), `scenes.css has no styles for ${id}`);
   }
 });
 

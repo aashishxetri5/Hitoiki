@@ -6,78 +6,151 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:">
   <title>Blink</title>
   <link rel="stylesheet" href="../shared/tokens.css">
+  <link rel="stylesheet" href="../overlay/scenes.css">
   <link rel="stylesheet" href="dashboard.css">
   <script type="module" src="main.js"></script>
 </head>
 <body class="is-loading">
-  <header class="topbar">
-    <div class="brand">
-      <img class="logo" id="app-logo" alt="" width="36" height="36">
-      <div class="brand-text">
-        <h1>Blink</h1>
-        <p class="status" id="status"><span class="status-dot"></span><span id="status-text">Starting…</span></p>
-      </div>
+  <div class="aura" aria-hidden="true"></div>
+
+  <header class="header">
+    <div class="wordmark">
+      <img id="app-logo" alt="" width="26" height="26">
+      <span>blink</span>
     </div>
-    <div class="top-controls">
-      <div class="pause">
-        <button class="btn" id="pause-button" type="button" aria-haspopup="menu" aria-expanded="false">
-          <span data-icon="pause" data-icon-size="16"></span>
-          <span id="pause-label">Pause</span>
-          <span class="pause-caret" data-icon="chevron-down" data-icon-size="14"></span>
-        </button>
-        <div class="menu" id="pause-menu" role="menu" aria-label="Pause reminders for" hidden></div>
-      </div>
+    <div class="header-actions">
       <label class="power">
         <input type="checkbox" id="enabled" aria-label="Reminders on">
         <span class="power-track"><span class="power-thumb"></span></span>
         <span class="power-label" id="enabled-label">On</span>
       </label>
+      <button class="icon-button" id="open-settings" type="button" aria-label="Settings" title="Settings"><span data-icon="settings"></span></button>
     </div>
   </header>
 
-  <div class="layout">
-    <nav class="sidebar" id="nav" aria-label="Sections"></nav>
-
-    <main id="main">
-      <!-- Reminders -->
-      <section class="page" id="page-reminders" aria-labelledby="h-reminders">
-        <div class="page-head">
-          <div>
-            <h2 id="h-reminders">Reminders</h2>
-            <p class="muted">Each reminder appears on screen at its own interval.</p>
-          </div>
-          <button class="btn btn-primary" id="new-reminder" type="button"><span data-icon="plus" data-icon-size="16"></span>New reminder</button>
+  <div class="scroll">
+    <main class="home">
+      <!-- Today: progress of every reminder, and what is next -->
+      <section class="hero" aria-label="Today">
+        <div class="rings-wrap">
+          <svg class="rings" id="rings" viewBox="0 0 320 320" aria-hidden="true"></svg>
+          <div class="hero-center" id="hero-center"></div>
         </div>
-        <div class="cards" id="reminder-list" aria-busy="true">
-          <div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div>
-        </div>
-        <div class="panel empty-state" id="reminders-empty" hidden>
-          <span class="empty-icon" data-icon="bell-ring" data-icon-size="28"></span>
-          <h3>No reminders yet</h3>
-          <p class="muted">Add one to get a gentle nudge to blink, drink water or stretch.</p>
-          <button class="btn btn-primary" id="empty-new" type="button"><span data-icon="plus" data-icon-size="16"></span>Add a reminder</button>
-        </div>
+        <div class="hero-actions" id="hero-actions"></div>
+        <p class="visually-hidden" id="hero-status" role="status" aria-live="polite"></p>
       </section>
 
-      <!-- Schedule -->
-      <section class="page" id="page-schedule" aria-labelledby="h-schedule" hidden>
-        <div class="page-head">
-          <div>
-            <h2 id="h-schedule">Schedule</h2>
-            <p class="muted">Choose when reminders may appear, and when Blink should stay out of the way.</p>
-          </div>
+      <!-- The reminders themselves -->
+      <section class="reminders" aria-labelledby="h-reminders">
+        <div class="section-head">
+          <h2 id="h-reminders">Your reminders</h2>
+          <button class="btn btn-secondary" id="new-reminder" type="button"><span data-icon="plus" data-icon-size="16"></span>New reminder</button>
         </div>
-        <div class="columns">
+        <ul class="reminder-list" id="reminder-list" aria-busy="true">
+          <li class="row-skeleton"></li><li class="row-skeleton"></li><li class="row-skeleton"></li>
+        </ul>
+        <div class="empty" id="reminders-empty" hidden>
+          <span class="empty-icon" data-icon="bell-ring" data-icon-size="28"></span>
+          <h3>Nothing to remind you of yet</h3>
+          <p>Add a reminder to get a gentle nudge to blink, drink water or stretch.</p>
+          <button class="btn btn-primary" id="empty-new" type="button"><span data-icon="plus" data-icon-size="16"></span>Add your first reminder</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Reminder editor -->
+  <dialog id="reminder-sheet" class="sheet" aria-labelledby="sheet-title">
+    <form class="sheet-form" id="reminder-form" novalidate>
+      <div class="sheet-head">
+        <h2 id="sheet-title">New reminder</h2>
+        <button class="icon-button" type="button" data-close aria-label="Close"><span data-icon="x"></span></button>
+      </div>
+      <div class="sheet-body">
+        <div class="preview" id="preview">
+          <div class="preview-stage" id="preview-stage" aria-hidden="true"></div>
+          <button class="icon-button preview-replay" type="button" id="preview-replay" aria-label="Replay animation" title="Replay animation"><span data-icon="rotate-ccw" data-icon-size="18"></span></button>
+        </div>
+
+        <div class="field" id="template-field">
+          <span class="field-label" id="template-label">Start from</span>
+          <div class="chips" id="templates" role="group" aria-labelledby="template-label"></div>
+        </div>
+
+        <div class="field">
+          <label for="reminder-name">Name</label>
+          <input class="input input-lg" id="reminder-name" type="text" maxlength="40" autocomplete="off" placeholder="What should Blink remind you of?" required>
+        </div>
+        <div class="field">
+          <label for="reminder-message">Message <span class="optional">optional</span></label>
+          <input class="input" id="reminder-message" type="text" maxlength="80" autocomplete="off" placeholder="A short line shown under the animation">
+        </div>
+
+        <div class="field">
+          <span class="field-label" id="scene-label">Animation</span>
+          <div class="tiles" id="scene-grid" role="radiogroup" aria-labelledby="scene-label"></div>
+        </div>
+        <div class="field" id="icon-field" hidden>
+          <span class="field-label" id="icon-label">Icon</span>
+          <div class="icon-picker" id="icon-grid" role="radiogroup" aria-labelledby="icon-label"></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label" id="interval-label">Remind me every</span>
+          <div class="interval" role="group" aria-labelledby="interval-label">
+            <div class="stepper">
+              <button class="stepper-button" type="button" id="interval-down" aria-label="Decrease"><span data-icon="minus" data-icon-size="18"></span></button>
+              <input id="interval-value" type="number" min="1" step="1" inputmode="numeric" aria-label="How many" required>
+              <button class="stepper-button" type="button" id="interval-up" aria-label="Increase"><span data-icon="plus" data-icon-size="18"></span></button>
+            </div>
+            <div class="segmented" id="interval-unit" role="radiogroup" aria-label="Unit"></div>
+          </div>
+          <div class="chips" id="interval-presets" role="group" aria-label="Common intervals"></div>
+        </div>
+
+        <div class="field">
+          <div class="field-line">
+            <label for="reminder-duration">Stays on screen</label>
+            <output class="pill" id="reminder-duration-value" for="reminder-duration">2 s</output>
+          </div>
+          <input type="range" id="reminder-duration" min="1" max="30" step="1">
+        </div>
+
+        <div class="field">
+          <span class="field-label" id="sound-label">Sound <span class="optional">tap to hear it</span></span>
+          <div class="chips" id="sound-chips" role="radiogroup" aria-labelledby="sound-label"></div>
+        </div>
+
+        <p class="form-error" id="reminder-error" role="alert" hidden></p>
+      </div>
+      <div class="sheet-foot">
+        <button class="btn btn-danger" type="button" id="reminder-delete" aria-label="Delete reminder" hidden><span data-icon="trash" data-icon-size="16"></span><span class="btn-text">Delete</span></button>
+        <span class="spacer"></span>
+        <button class="btn btn-secondary" type="button" id="reminder-play"><span data-icon="play" data-icon-size="16"></span>Show on screen</button>
+        <button class="btn btn-primary" type="submit" id="reminder-save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog id="settings-sheet" class="sheet" aria-labelledby="settings-title">
+    <div class="sheet-form">
+      <div class="sheet-head">
+        <h2 id="settings-title" tabindex="-1" autofocus>Settings</h2>
+        <button class="icon-button" type="button" data-close aria-label="Close"><span data-icon="x"></span></button>
+      </div>
+      <div class="sheet-body">
+        <section class="group" aria-labelledby="g-hours">
+          <h3 id="g-hours">Active hours</h3>
           <div class="panel">
-            <h3>Active hours</h3>
             <label class="row">
-              <span class="row-text">Only remind me during set hours<small>Outside these hours Blink stays quiet and starts again by itself.</small></span>
+              <span class="row-copy">Only remind me during set hours<small>Outside them Blink stays quiet and starts again by itself.</small></span>
               <input type="checkbox" class="switch" id="hours-enabled">
             </label>
-            <div id="hours-fields" class="stack">
+            <div class="stack" id="hours-fields">
               <div class="field-row">
-                <div class="field grow"><label for="hours-start">From</label><input id="hours-start" type="time" required></div>
-                <div class="field grow"><label for="hours-end">Until</label><input id="hours-end" type="time" required></div>
+                <div class="field grow"><label for="hours-start">From</label><input class="input" id="hours-start" type="time" required></div>
+                <div class="field grow"><label for="hours-end">Until</label><input class="input" id="hours-end" type="time" required></div>
               </div>
               <div class="field">
                 <span class="field-label" id="days-label">Days</span>
@@ -86,130 +159,74 @@
               <p class="hint" id="hours-summary"></p>
             </div>
           </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-away">
+          <h3 id="g-away">Stay out of the way</h3>
           <div class="panel">
-            <h3>Smart pause</h3>
             <label class="row">
-              <span class="row-text">Pause when I'm away<small>Skips reminders while you haven't touched the keyboard or mouse.</small></span>
+              <span class="row-copy">Pause when I'm away<small>Skips reminders while you haven't touched the keyboard or mouse.</small></span>
               <input type="checkbox" class="switch" data-setting="pauseWhenIdle">
             </label>
             <div class="slider-block" id="idle-block">
-              <label for="idle-minutes">Away after</label>
-              <div class="slider-row">
-                <input type="range" id="idle-minutes" min="1" max="60" step="1">
-                <output id="idle-minutes-value" class="pill" for="idle-minutes">5 min</output>
-              </div>
+              <div class="field-line"><label for="idle-minutes">Away after</label><output class="pill" id="idle-minutes-value" for="idle-minutes">5 min</output></div>
+              <input type="range" id="idle-minutes" min="1" max="60" step="1">
             </div>
             <label class="row" id="row-fullscreen">
-              <span class="row-text">Pause during full-screen apps<small id="fullscreen-note">Games, videos and presentations.</small></span>
+              <span class="row-copy">Pause during full-screen apps<small id="fullscreen-note">Games, videos and presentations.</small></span>
               <input type="checkbox" class="switch" data-setting="pauseInFullscreen">
             </label>
-            <p class="hint">A locked screen never shows reminders. When you come back, every countdown starts fresh.</p>
+            <p class="hint">A locked screen never shows reminders, and every countdown starts fresh when you return.</p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Settings -->
-      <section class="page" id="page-settings" aria-labelledby="h-settings" hidden>
-        <div class="page-head">
-          <div><h2 id="h-settings">Settings</h2></div>
-        </div>
-        <div class="columns">
+        <section class="group" aria-labelledby="g-screen">
+          <h3 id="g-screen">On screen</h3>
           <div class="panel">
-            <h3>On-screen reminder</h3>
             <div class="field">
-              <span class="field-label" id="position-label">Position</span>
+              <span class="field-label" id="position-label">Where reminders appear</span>
               <div class="position-grid" id="position" role="radiogroup" aria-labelledby="position-label"></div>
             </div>
             <div class="slider-block">
-              <label for="overlay-size">Size</label>
-              <div class="slider-row">
-                <input type="range" id="overlay-size" min="60" max="160" step="10">
-                <output id="overlay-size-value" class="pill" for="overlay-size">100%</output>
-              </div>
+              <div class="field-line"><label for="overlay-size">Size</label><output class="pill" id="overlay-size-value" for="overlay-size">100%</output></div>
+              <input type="range" id="overlay-size" min="60" max="160" step="10">
             </div>
-            <button class="btn" id="test-overlay" type="button"><span data-icon="play" data-icon-size="16"></span>Show a test reminder</button>
+            <button class="btn btn-secondary" id="test-overlay" type="button"><span data-icon="play" data-icon-size="16"></span>Show a test reminder</button>
           </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-sound">
+          <h3 id="g-sound">Sound</h3>
           <div class="panel">
-            <h3>Sound</h3>
             <div class="slider-block">
-              <label for="volume">Volume</label>
-              <div class="slider-row">
-                <span class="muted" data-icon="volume-2"></span>
-                <input type="range" id="volume" min="0" max="100" step="5">
-                <output id="volume-value" class="pill" for="volume">50%</output>
-              </div>
+              <div class="field-line"><label for="volume">Volume</label><output class="pill" id="volume-value" for="volume">50%</output></div>
+              <input type="range" id="volume" min="0" max="100" step="5">
             </div>
-            <p class="hint">Each reminder chooses its own sound, or none, in its settings.</p>
-            <h3>General</h3>
+            <p class="hint">Each reminder chooses its own sound, or none, when you edit it.</p>
+          </div>
+        </section>
+
+        <section class="group" aria-labelledby="g-general">
+          <h3 id="g-general">General</h3>
+          <div class="panel">
             <label class="row">
-              <span class="row-text">Start with your computer<small>Opens quietly in the system tray.</small></span>
+              <span class="row-copy">Start with your computer<small>Opens quietly in the system tray.</small></span>
               <input type="checkbox" class="switch" data-setting="launchAtLogin">
             </label>
             <p class="hint">Closing this window keeps Blink running in the tray. Quit from the tray menu.</p>
           </div>
-          <div class="panel">
-            <h3>Privacy</h3>
-            <p class="small privacy-text"><span data-icon="shield-check" data-icon-size="16"></span>Blink works entirely on your computer. It has no account, no analytics and no network access. Your reminders and settings are saved in one small file on this device and are never sent anywhere.</p>
-            <p class="muted small" id="about"></p>
-            <p class="muted small" id="data-path"></p>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
+        </section>
 
-  <!-- Reminder editor -->
-  <dialog id="editor" class="modal" aria-labelledby="editor-title">
-    <form class="modal-body" id="editor-form" novalidate>
-      <div class="modal-head">
-        <h2 id="editor-title">New reminder</h2>
-        <button class="icon-button" type="button" data-close aria-label="Close"><span data-icon="x"></span></button>
-      </div>
-      <div class="field" id="template-field">
-        <span class="field-label" id="template-label">Start from</span>
-        <div class="chips" id="templates" role="group" aria-labelledby="template-label"></div>
-      </div>
-      <div class="field">
-        <label for="reminder-name">Name</label>
-        <input id="reminder-name" type="text" maxlength="40" autocomplete="off" required>
-      </div>
-      <div class="field">
-        <label for="reminder-message">Message <span class="muted">(optional)</span></label>
-        <input id="reminder-message" type="text" maxlength="80" autocomplete="off">
-      </div>
-      <div class="field">
-        <span class="field-label" id="scene-label">Animation</span>
-        <div class="option-grid" id="scene-grid" role="radiogroup" aria-labelledby="scene-label"></div>
-      </div>
-      <div class="field" id="icon-field" hidden>
-        <span class="field-label" id="icon-label">Icon</span>
-        <div class="icon-picker" id="icon-grid" role="radiogroup" aria-labelledby="icon-label"></div>
-      </div>
-      <div class="field-row wrap">
-        <div class="field grow">
-          <label for="interval-value">Remind me every</label>
-          <div class="input-group">
-            <input id="interval-value" type="number" min="1" step="1" inputmode="numeric" required>
-            <select id="interval-unit" aria-label="Unit"></select>
+        <section class="group" aria-labelledby="g-privacy">
+          <h3 id="g-privacy">Privacy</h3>
+          <div class="panel">
+            <p class="privacy-text"><span data-icon="shield-check" data-icon-size="18"></span>Blink works entirely on your computer. It has no account, no analytics and no network access. Your reminders and settings are saved in one small file on this device and are never sent anywhere.</p>
+            <p class="hint" id="about"></p>
+            <p class="hint" id="data-path"></p>
           </div>
-        </div>
-        <div class="field">
-          <label for="reminder-duration">Show for (seconds)</label>
-          <input id="reminder-duration" type="number" min="1" max="30" step="1" inputmode="numeric" required>
-        </div>
+        </section>
       </div>
-      <div class="field">
-        <label for="reminder-sound">Sound</label>
-        <select id="reminder-sound"></select>
-      </div>
-      <p class="form-error" id="editor-error" role="alert" hidden></p>
-      <div class="modal-actions">
-        <button class="btn" id="editor-preview" type="button"><span data-icon="play" data-icon-size="16"></span>Preview</button>
-        <span class="spacer"></span>
-        <button class="btn btn-ghost" type="button" data-close>Cancel</button>
-        <button class="btn btn-primary" id="editor-save" type="submit">Save</button>
-      </div>
-    </form>
+    </div>
   </dialog>
 </body>
 </html>

@@ -4,19 +4,23 @@
 
 import { OverlayPosition, SoundId } from '../../shared/constants.js';
 
-export const PAGES = Object.freeze([
-  { id: 'reminders', label: 'Reminders', icon: 'bell-ring' },
-  { id: 'schedule', label: 'Schedule', icon: 'calendar-clock' },
-  { id: 'settings', label: 'Settings', icon: 'settings' },
-]);
-export const DEFAULT_PAGE = 'reminders';
-
 export const SOUND_OPTIONS = Object.freeze([
   { value: SoundId.OFF, label: 'Silent' },
   { value: SoundId.TICK, label: 'Tick' },
   { value: SoundId.CHIME, label: 'Chime' },
   { value: SoundId.DROPLET, label: 'Droplet' },
   { value: SoundId.BELL, label: 'Bell' },
+]);
+
+/** Quick picks beside the interval stepper. */
+export const INTERVAL_PRESETS = Object.freeze([
+  { seconds: 10, label: '10 sec' },
+  { seconds: 20, label: '20 sec' },
+  { seconds: 60, label: '1 min' },
+  { seconds: 5 * 60, label: '5 min' },
+  { seconds: 20 * 60, label: '20 min' },
+  { seconds: 30 * 60, label: '30 min' },
+  { seconds: 60 * 60, label: '1 hour' },
 ]);
 
 /** Positions in the order of the 3×3 picker, row by row. */

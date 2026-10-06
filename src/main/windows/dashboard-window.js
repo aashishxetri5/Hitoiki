@@ -2,13 +2,21 @@
  * @file The settings window. Closing it destroys it, which frees its memory; the app
  * keeps running in the tray and the window is rebuilt from the main process's state
  * the next time it is opened.
+ *
+ * The native title bar is hidden so the page can draw its own header; the system still
+ * draws the window buttons, tinted to match the page and the system theme.
  */
 
-import { app } from 'electron';
+import { app, nativeTheme } from 'electron';
 import { APP_NAME } from '../../shared/constants.js';
-import { DashboardWindowSize, Paths } from '../constants.js';
+import {
+  DashboardTheme, DashboardWindowSize, IS_MAC, Paths,
+} from '../constants.js';
 import { appIcon } from './app-icons.js';
 import { createWindow, sendTo, WindowRole } from './window-factory.js';
+
+/** @returns {{ background: string, symbol: string }} Frame colours for the current system theme. */
+const currentTheme = () => DashboardTheme[nativeTheme.shouldUseDarkColors ? 'dark' : 'light'];
 
 /** The settings window, created on demand. */
 export class DashboardWindow {
@@ -67,6 +75,7 @@ export class DashboardWindow {
    * @returns {void}
    */
   create() {
+    const theme = currentTheme();
     const win = createWindow({
       width: DashboardWindowSize.WIDTH,
       height: DashboardWindowSize.HEIGHT,
@@ -74,14 +83,29 @@ export class DashboardWindow {
       minHeight: DashboardWindowSize.MIN_HEIGHT,
       title: APP_NAME,
       icon: appIcon(),
-      backgroundColor: DashboardWindowSize.BACKGROUND,
+      backgroundColor: theme.background,
       autoHideMenuBar: true,
       show: false,
+      titleBarStyle: 'hidden',
+      ...(IS_MAC
+        ? { trafficLightPosition: { x: 22, y: (DashboardWindowSize.TITLE_BAR_HEIGHT - 14) / 2 } }
+        : { titleBarOverlay: { color: theme.background, symbolColor: theme.symbol, height: DashboardWindowSize.TITLE_BAR_HEIGHT } }),
     }, { label: 'dashboard', role: WindowRole.DASHBOARD });
     win.removeMenu();
     win.loadFile(Paths.DASHBOARD_HTML);
     win.once('ready-to-show', () => win.show());
+
+    // Keep the frame in step with the system theme while the window is open.
+    const applyTheme = () => {
+      if (win.isDestroyed()) return;
+      const next = currentTheme();
+      win.setBackgroundColor(next.background);
+      if (!IS_MAC) win.setTitleBarOverlay({ color: next.background, symbolColor: next.symbol });
+    };
+    nativeTheme.on('updated', applyTheme);
+
     win.on('closed', () => {
+      nativeTheme.off('updated', applyTheme);
       if (this.win !== win) return;
       this.win = null;
       app.dock?.hide();

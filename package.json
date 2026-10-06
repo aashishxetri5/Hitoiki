@@ -14,6 +14,7 @@
     "start": "electron .",
     "assets": "node scripts/generate-icons.js",
     "icons:vendor": "node scripts/vendor-icons.js",
+    "fonts:vendor": "node scripts/vendor-fonts.js",
     "lint": "eslint .",
     "test": "node --test \"test/**/*.test.js\"",
     "predist": "npm run assets",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@fontsource-variable/fraunces": "^5.3.0",
     "electron": "^44.5.1",
     "electron-builder": "^26.15.3",
     "eslint": "^10.11.0",

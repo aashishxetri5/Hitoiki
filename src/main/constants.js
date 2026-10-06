@@ -32,10 +32,19 @@ export const Timing = Object.freeze({
 export const MAX_QUEUED_REMINDERS = 3;
 
 export const DashboardWindowSize = Object.freeze({
-  WIDTH: 1000,
-  HEIGHT: 740,
+  WIDTH: 1020,
+  HEIGHT: 720,
   MIN_WIDTH: 360,
-  MIN_HEIGHT: 520,
-  /** Shown before the page paints; matches --bg in src/renderer/shared/tokens.css. */
-  BACKGROUND: '#0d131c',
+  MIN_HEIGHT: 560,
+  /** Height of the title bar; matches --header-h in src/renderer/dashboard/dashboard.css. */
+  TITLE_BAR_HEIGHT: 56,
+});
+
+/**
+ * Colours for the window frame: painted before the page loads, and used for the system's
+ * window buttons. They must match --bg and --ink in src/renderer/shared/tokens.css.
+ */
+export const DashboardTheme = Object.freeze({
+  light: Object.freeze({ background: '#f6f1ea', symbol: '#1f2430' }),
+  dark: Object.freeze({ background: '#15131a', symbol: '#f4efe8' }),
 });
