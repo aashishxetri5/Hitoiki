@@ -1,4 +1,4 @@
-/* Blink's window. Colours and type come from ../shared/tokens.css.
+/* The app window. Colours and type come from ../shared/tokens.css.
 
    Design notes
    - One living home screen; settings and the editor are slide-over sheets.
@@ -56,7 +56,7 @@ body[data-state="off"], body[data-state="hours"] { --aura-strength: 0.4; }
 html[data-platform="mac"] .header { padding-left: 86px; }
 .header button, .header label { -webkit-app-region: no-drag; }
 
-.wordmark { display: flex; align-items: center; gap: 9px; font: 600 22px/1 var(--font-display); letter-spacing: -0.03em; }
+.wordmark { display: flex; align-items: center; gap: 9px; font: 600 22px/1 var(--font-display); letter-spacing: -0.03em; text-transform: lowercase; }
 .wordmark img { border-radius: 8px; }
 .logo:not([src]), #app-logo:not([src]) { visibility: hidden; }
 
@@ -302,7 +302,7 @@ input[type="time"] { font-variant-numeric: tabular-nums; }
 .stack { display: grid; gap: 16px; }
 .slider-block { display: grid; gap: 6px; }
 .privacy-text { display: flex; gap: 10px; align-items: flex-start; line-height: 1.55; }
-.privacy-text > span { color: var(--success); flex: none; padding-top: 2px; }
+.privacy-icon { color: var(--success); flex: none; padding-top: 2px; }
 .panel .hint { overflow-wrap: anywhere; }
 
 /* Live preview of the animation in the editor */

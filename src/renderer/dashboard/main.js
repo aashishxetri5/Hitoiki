@@ -3,7 +3,7 @@
  * and subscribes to updates from the main process.
  */
 
-import { Invoke, Push, ToastKind } from '../../shared/constants.js';
+import { APP_NAME, Invoke, Push, ToastKind } from '../../shared/constants.js';
 import { api } from '../shared/bridge.js';
 import { $ } from '../shared/dom.js';
 import { hydrateIcons } from '../shared/icons.js';
@@ -44,6 +44,8 @@ function mountHeader(store, openSettings) {
  * @returns {Promise<void>}
  */
 async function start() {
+  // The app's name lives in one constant; the page shows it wherever it is mentioned.
+  for (const node of document.querySelectorAll('[data-app-name]')) node.textContent = APP_NAME;
   hydrateIcons();
   mountAura();
 

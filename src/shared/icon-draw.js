@@ -1,55 +1,50 @@
 /**
- * @file Renders the application icon as PNG: an open eye on a gradient tile, or a
- * closed eye when reminders are inactive. Drawn from signed distance fields so it stays
- * crisp at every size, from 16 px tray icons to the 1024 px installer artwork.
- * Pure Node so that both the app and the build scripts can use it.
+ * @file Renders the application icon as PNG: concentric progress rings, in the colours of the
+ * reminders, on a dark tile; the same rings in grey when reminders are not running. Drawn from
+ * signed distance fields so it stays crisp at every size, from 16 px tray icons to the 1024 px
+ * installer artwork. Pure Node so that both the app and the build scripts can use it.
  */
 
 import { Buffer } from 'node:buffer';
 import zlib from 'node:zlib';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const TWO_PI = Math.PI * 2;
 
 /** Colours as [r, g, b] in 0–255. */
 const PALETTE = {
   active: {
-    tileTop: [86, 204, 250],
-    tileBottom: [37, 99, 235],
-    sclera: [255, 255, 255],
-    scleraEdge: [208, 232, 255],
-    iris: [30, 64, 175],
-    pupil: [8, 14, 36],
-    lid: [255, 255, 255],
+    tileTop: [48, 43, 78],
+    tileBottom: [20, 18, 32],
+    rings: [[91, 141, 239], [34, 195, 214], [255, 138, 91]],
+    trackAlpha: 0.14,
   },
   inactive: {
     tileTop: [150, 158, 172],
     tileBottom: [88, 96, 112],
-    sclera: [255, 255, 255],
-    scleraEdge: [226, 230, 238],
-    iris: [88, 96, 112],
-    pupil: [40, 46, 60],
-    lid: [255, 255, 255],
+    rings: [[255, 255, 255], [255, 255, 255], [255, 255, 255]],
+    trackAlpha: 0.22,
   },
 };
 
 /** Layout in unit coordinates (0–1, origin top-left). */
-const LAYOUT = {
-  tile: { cx: 0.5, cy: 0.5, hw: 0.47, hh: 0.47, r: 0.22 },
-  /** Half-width and half-height of the almond-shaped eye opening. */
-  eye: { cx: 0.5, cy: 0.5, a: 0.35, b: 0.2 },
-  iris: { cx: 0.5, cy: 0.5, r: 0.155 },
-  pupil: { cx: 0.5, cy: 0.5, r: 0.075 },
-  glint: { cx: 0.46, cy: 0.455, r: 0.034 },
-  lidWidth: 0.058,
-  /** Horizontal positions of the closed-eye lashes, relative to the eye centre. */
-  lashOffsets: [-0.2, 0, 0.2],
-  lashLength: 0.085,
-};
-
-// Both arcs of the almond are circles whose centres sit above and below the eye, so
-// the opening is the overlap of two discs.
-const ARC_OFFSET = (LAYOUT.eye.a ** 2 - LAYOUT.eye.b ** 2) / (2 * LAYOUT.eye.b);
-const ARC_RADIUS = ARC_OFFSET + LAYOUT.eye.b;
+const TILE = { cx: 0.5, cy: 0.5, hw: 0.47, hh: 0.47, r: 0.22 };
+const CENTER = 0.5;
+/**
+ * The rings, outermost first: radius, thickness, and how much of the circle is filled
+ * (clockwise from the top). Small icons get fewer, thicker rings so they stay legible.
+ */
+const RINGS_DETAILED = [
+  { radius: 0.335, width: 0.07, filled: 0.8 },
+  { radius: 0.235, width: 0.07, filled: 0.62 },
+  { radius: 0.135, width: 0.07, filled: 0.42 },
+];
+const RINGS_SMALL = [
+  { radius: 0.31, width: 0.14, filled: 0.78 },
+  { radius: 0.15, width: 0.14, filled: 0.52 },
+];
+/** Icons up to this many pixels use the small layout. */
+const SMALL_ICON_PX = 40;
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   let c = n;
@@ -116,64 +111,35 @@ function roundRect(px, py, { cx, cy, hw, hh, r }) {
 }
 
 /**
+ * Signed distance to a full ring.
  * @param {number} px - Point x.
  * @param {number} py - Point y.
- * @param {{ cx: number, cy: number, r: number }} disc - Disc.
+ * @param {number} radius - Radius of the ring's centre line.
+ * @param {number} width - Thickness.
  * @returns {number} Signed distance.
  */
-const disc = (px, py, { cx, cy, r }) => Math.hypot(px - cx, py - cy) - r;
+const ring = (px, py, radius, width) => Math.abs(Math.hypot(px - CENTER, py - CENTER) - radius) - width / 2;
 
 /**
- * Signed distance to the almond-shaped eye opening.
+ * Signed distance to a partial ring with round ends, filling clockwise from the top.
  * @param {number} px - Point x.
  * @param {number} py - Point y.
+ * @param {number} radius - Radius of the ring's centre line.
+ * @param {number} width - Thickness.
+ * @param {number} filled - Fraction of the circle covered, 0–1.
  * @returns {number} Signed distance.
  */
-function eyeOpening(px, py) {
-  const { cx, cy } = LAYOUT.eye;
-  return Math.max(
-    Math.hypot(px - cx, py - (cy + ARC_OFFSET)) - ARC_RADIUS,
-    Math.hypot(px - cx, py - (cy - ARC_OFFSET)) - ARC_RADIUS,
-  );
-}
-
-/**
- * @param {number} px - Point x.
- * @param {number} py - Point y.
- * @param {number[]} segment - Segment as [x1, y1, x2, y2].
- * @param {number} halfWidth - Half the stroke width.
- * @returns {number} Signed distance to the stroked segment.
- */
-function strokedSegment(px, py, [x1, y1, x2, y2], halfWidth) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const t = Math.min(1, Math.max(0, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
-  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)) - halfWidth;
-}
-
-/** Closed-eye lashes: short strokes pointing away from the centre of the lower arc. */
-const LASHES = LAYOUT.lashOffsets.map((offset) => {
-  const { cx, cy } = LAYOUT.eye;
-  const x = cx + offset;
-  const y = cy - ARC_OFFSET + Math.sqrt(ARC_RADIUS ** 2 - offset ** 2);
-  const length = Math.hypot(offset, y - (cy - ARC_OFFSET));
-  const ux = offset / length;
-  const uy = (y - (cy - ARC_OFFSET)) / length;
-  return [x, y, x + ux * LAYOUT.lashLength, y + uy * LAYOUT.lashLength];
-});
-
-/**
- * Signed distance to the closed lid: the lower edge of the eye as a stroked curve with lashes.
- * @param {number} px - Point x.
- * @param {number} py - Point y.
- * @returns {number} Signed distance.
- */
-function closedLid(px, py) {
-  const { cx, cy, a } = LAYOUT.eye;
-  const curve = Math.abs(Math.hypot(px - cx, py - (cy - ARC_OFFSET)) - ARC_RADIUS) - LAYOUT.lidWidth / 2;
-  // Keep only the lower arc, between the corners of the eye.
-  const arc = Math.max(curve, Math.abs(px - cx) - a, cy - 0.03 - py);
-  return Math.min(arc, ...LASHES.map((lash) => strokedSegment(px, py, lash, LAYOUT.lidWidth * 0.4)));
+function arc(px, py, radius, width, filled) {
+  const dx = px - CENTER;
+  const dy = py - CENTER;
+  let angle = Math.atan2(dx, -dy);
+  if (angle < 0) angle += TWO_PI;
+  const sweep = filled * TWO_PI;
+  if (angle <= sweep) return Math.abs(Math.hypot(dx, dy) - radius) - width / 2;
+  // Past the end of the arc, the nearest point is one of its two rounded ends.
+  const start = Math.hypot(dx, dy + radius);
+  const end = Math.hypot(dx - radius * Math.sin(sweep), dy + radius * Math.cos(sweep));
+  return Math.min(start, end) - width / 2;
 }
 
 // ---------- Shading ----------
@@ -203,45 +169,33 @@ function smoothstep(edge0, edge1, x) {
  * @param {number} v - y in unit coordinates.
  * @param {(d: number) => number} coverage - Anti-aliased coverage for a signed distance.
  * @param {typeof PALETTE.active} colors - Palette.
- * @param {boolean} inactive - Whether to draw the closed eye.
+ * @param {typeof RINGS_DETAILED} rings - Ring layout.
  * @returns {[number[], number][]} Layers as [rgb, alpha].
  */
-function layersAt(u, v, coverage, colors, inactive) {
-  const { tile, eye } = LAYOUT;
-  const tileT = (v - (tile.cy - tile.hh)) / (2 * tile.hh);
+function layersAt(u, v, coverage, colors, rings) {
+  const tileT = (v - (TILE.cy - TILE.hh)) / (2 * TILE.hh);
   // Soft highlight in the upper third of the tile.
-  const sheen = 0.16 * (1 - smoothstep(0.05, 0.45, v)) * (1 - smoothstep(0.2, 0.9, Math.abs(u - 0.5) * 2));
+  const sheen = 0.1 * (1 - smoothstep(0.05, 0.5, v)) * (1 - smoothstep(0.2, 0.9, Math.abs(u - 0.5) * 2));
   const tileColor = mix(mix(colors.tileTop, colors.tileBottom, tileT), [255, 255, 255], sheen);
-  const tileCover = coverage(roundRect(u, v, tile));
+  const tileCover = coverage(roundRect(u, v, TILE));
   const layers = [[tileColor, tileCover]];
-
-  if (inactive) {
-    layers.push([colors.lid, coverage(closedLid(u, v))]);
-    return layers;
-  }
-
-  // The eye shades slightly toward its edges so it reads as rounded.
-  const edge = smoothstep(0.35, 1, Math.abs(u - eye.cx) / eye.a);
-  const sclera = mix(colors.sclera, colors.scleraEdge, edge);
-  const opening = coverage(eyeOpening(u, v));
-  layers.push(
-    [[0, 0, 0], 0.22 * (1 - smoothstep(0, 0.05, eyeOpening(u, v - 0.02))) * tileCover],
-    [sclera, opening],
-    [colors.iris, coverage(Math.max(disc(u, v, LAYOUT.iris), eyeOpening(u, v))) * opening],
-    [colors.pupil, coverage(disc(u, v, LAYOUT.pupil))],
-    [[255, 255, 255], 0.95 * coverage(disc(u, v, LAYOUT.glint))],
-  );
+  rings.forEach(({ radius, width, filled }, i) => {
+    const color = colors.rings[i];
+    layers.push([color, colors.trackAlpha * coverage(ring(u, v, radius, width))]);
+    layers.push([color, coverage(arc(u, v, radius, width, filled))]);
+  });
   return layers;
 }
 
 /**
  * Draws the app icon.
  * @param {number} size - Edge length in pixels.
- * @param {boolean} [inactive=false] - Grey variant with a closed eye, shown while reminders are not running.
+ * @param {boolean} [inactive=false] - Grey variant, shown while reminders are not running.
  * @returns {Buffer} PNG file contents.
  */
 export function drawIcon(size, inactive = false) {
   const colors = inactive ? PALETTE.inactive : PALETTE.active;
+  const rings = size <= SMALL_ICON_PX ? RINGS_SMALL : RINGS_DETAILED;
   // Small icons are supersampled so thin strokes keep their shape.
   const samples = size <= 64 ? 4 : size <= 256 ? 2 : 1;
   const aa = 1.2 / (size * samples);
@@ -263,7 +217,7 @@ export function drawIcon(size, inactive = false) {
           let pg = 0;
           let pb = 0;
           let pa = 0;
-          for (const [[lr, lg, lb], la] of layersAt(u, v, coverage, colors, inactive)) {
+          for (const [[lr, lg, lb], la] of layersAt(u, v, coverage, colors, rings)) {
             pr = lr * la + pr * (1 - la);
             pg = lg * la + pg * (1 - la);
             pb = lb * la + pb * (1 - la);

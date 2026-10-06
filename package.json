@@ -1,8 +1,8 @@
 {
-  "name": "blink",
-  "productName": "Blink",
+  "name": "tend",
+  "productName": "Tend",
   "version": "1.0.0",
-  "description": "A lightweight tray app that reminds you to blink, drink water, stretch and rest your eyes, with animated on-screen cues.",
+  "description": "A lightweight tray app that gently reminds you to blink, drink water, stretch, sit tall and breathe, with animated on-screen cues.",
   "author": "Aashish Katwal",
   "license": "MIT",
   "type": "module",
@@ -33,8 +33,8 @@
     "lucide": "^1.49.0"
   },
   "build": {
-    "appId": "com.blink.app",
-    "productName": "Blink",
+    "appId": "com.tend.app",
+    "productName": "Tend",
     "copyright": "Copyright © 2026 Aashish Katwal",
     "directories": {
       "output": "dist",
@@ -63,7 +63,7 @@
       "perMachine": false,
       "runAfterFinish": true,
       "createDesktopShortcut": false,
-      "artifactName": "Blink-Setup-${version}.${ext}"
+      "artifactName": "Tend-Setup-${version}.${ext}"
     },
     "mac": {
       "target": [
@@ -76,7 +76,7 @@
         }
       ],
       "category": "public.app-category.healthcare-fitness",
-      "artifactName": "Blink-${version}-${arch}.${ext}",
+      "artifactName": "Tend-${version}-${arch}.${ext}",
       "extendInfo": {
         "LSUIElement": true
       }
@@ -86,7 +86,7 @@
         "AppImage"
       ],
       "category": "Utility",
-      "artifactName": "Blink-${version}.${ext}"
+      "artifactName": "Tend-${version}.${ext}"
     }
   }
 }

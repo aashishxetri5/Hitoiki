@@ -1,6 +1,6 @@
-# Blink
+# Tend
 
-A small desktop app that quietly reminds you to look after yourself: blink, drink water, rest your eyes, sit tall, stretch, breathe. Each reminder pops up as a short animation on top of your screen, then disappears. It lives in the system tray and uses very little memory and CPU.
+Small habits, gently. Tend is a desktop app that quietly reminds you to look after yourself: blink, drink water, rest your eyes, sit tall, stretch, breathe. Each reminder pops up as a short animation on top of your screen, then disappears. It lives in the system tray and uses very little memory and CPU.
 
 ## Features
 
@@ -22,19 +22,19 @@ Get the installer for your system from the project's releases page.
 
 | Platform | File |
 | --- | --- |
-| Windows 10/11 | `Blink-Setup-<version>.exe` |
-| macOS (Apple silicon / Intel) | `Blink-<version>-arm64.dmg` / `-x64.dmg` |
-| Linux | `Blink-<version>.AppImage` |
+| Windows 10/11 | `Tend-Setup-<version>.exe` |
+| macOS (Apple silicon / Intel) | `Tend-<version>-arm64.dmg` / `-x64.dmg` |
+| Linux | `Tend-<version>.AppImage` |
 
 The builds are not code-signed yet:
 
 - **Windows** may show "Windows protected your PC". Choose **More info, then Run anyway**.
-- **macOS** may say the app is damaged. Move it to Applications and run `xattr -cr /Applications/Blink.app`.
+- **macOS** may say the app is damaged. Move it to Applications and run `xattr -cr /Applications/Tend.app`.
 - **Linux** needs a desktop with a compositor so the transparent reminder can be drawn. On GNOME the tray icon needs the AppIndicator extension. Make the AppImage executable and run it.
 
 ## Privacy
 
-Blink works entirely on your computer. It has no account, no analytics, no update check and no network access. Your reminders and settings are saved in one small file, `settings.json`, in your user data folder (`%APPDATA%\Blink` on Windows). Nothing is sent anywhere, and the app refuses every device and notification permission.
+Tend works entirely on your computer. It has no account, no analytics, no update check and no network access. Your reminders and settings are saved in one small file, `settings.json`, in your user data folder (`%APPDATA%\Tend` on Windows). Nothing is sent anywhere, and the app refuses every device and notification permission.
 
 ## Resource use
 

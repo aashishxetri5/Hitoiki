@@ -4,7 +4,7 @@
  */
 
 import { PRESETS, reminderFromPreset } from '../../../shared/catalog.js';
-import { Send } from '../../../shared/constants.js';
+import { APP_NAME, Send } from '../../../shared/constants.js';
 import { formatPercent } from '../../../shared/format.js';
 import { api } from '../../shared/bridge.js';
 import { $, h } from '../../shared/dom.js';
@@ -31,7 +31,7 @@ export function mountSettingsSheet(store) {
   });
   store.subscribe(['info'], ({ info }) => {
     if (!info) return;
-    $('#about').textContent = `Blink ${info.version}`;
+    $('#about').textContent = `${APP_NAME} ${info.version}`;
     $('#data-path').textContent = `Settings file: ${info.settingsPath}`;
   });
   return sheet;

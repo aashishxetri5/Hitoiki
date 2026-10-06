@@ -3,8 +3,8 @@
  * Anything that more than one process needs to agree on lives here.
  */
 
-export const APP_NAME = 'Blink';
-export const APP_ID = 'com.blink.app';
+export const APP_NAME = 'Tend';
+export const APP_ID = 'com.tend.app';
 
 /** Animated scenes the overlay can play. */
 export const SceneId = Object.freeze({

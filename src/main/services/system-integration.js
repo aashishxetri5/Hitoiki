@@ -11,7 +11,7 @@ import { IS_LINUX } from '../constants.js';
 
 /** Command-line flag that starts the app straight into the tray. */
 const HIDDEN_FLAG = '--hidden';
-const AUTOSTART_FILE = 'blink.desktop';
+const AUTOSTART_FILE = `${APP_NAME.toLowerCase()}.desktop`;
 
 /**
  * @returns {string[]} Arguments for the login item. In development Electron needs the app folder first.
@@ -59,7 +59,7 @@ export function wasStartedHidden() {
 }
 
 /**
- * Blink needs no device or notification permissions, so every request is refused.
+ * The app needs no device or notification permissions, so every request is refused.
  * @returns {void}
  */
 export function denyAllPermissions() {

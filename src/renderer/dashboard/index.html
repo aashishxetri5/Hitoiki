@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:">
-  <title>Blink</title>
+  <title>Tend</title>
   <link rel="stylesheet" href="../shared/tokens.css">
   <link rel="stylesheet" href="../overlay/scenes.css">
   <link rel="stylesheet" href="dashboard.css">
@@ -16,7 +16,7 @@
   <header class="header">
     <div class="wordmark">
       <img id="app-logo" alt="" width="26" height="26">
-      <span>blink</span>
+      <span data-app-name></span>
     </div>
     <div class="header-actions">
       <label class="power">
@@ -79,7 +79,7 @@
 
         <div class="field">
           <label for="reminder-name">Name</label>
-          <input class="input input-lg" id="reminder-name" type="text" maxlength="40" autocomplete="off" placeholder="What should Blink remind you of?" required>
+          <input class="input input-lg" id="reminder-name" type="text" maxlength="40" autocomplete="off" placeholder="What would you like a nudge for?" required>
         </div>
         <div class="field">
           <label for="reminder-message">Message <span class="optional">optional</span></label>
@@ -144,7 +144,7 @@
           <h3 id="g-hours">Active hours</h3>
           <div class="panel">
             <label class="row">
-              <span class="row-copy">Only remind me during set hours<small>Outside them Blink stays quiet and starts again by itself.</small></span>
+              <span class="row-copy">Only remind me during set hours<small>Outside them, reminders stay quiet and start again by themselves.</small></span>
               <input type="checkbox" class="switch" id="hours-enabled">
             </label>
             <div class="stack" id="hours-fields">
@@ -213,14 +213,14 @@
               <span class="row-copy">Start with your computer<small>Opens quietly in the system tray.</small></span>
               <input type="checkbox" class="switch" data-setting="launchAtLogin">
             </label>
-            <p class="hint">Closing this window keeps Blink running in the tray. Quit from the tray menu.</p>
+            <p class="hint">Closing this window keeps the app running in the tray. Quit from the tray menu.</p>
           </div>
         </section>
 
         <section class="group" aria-labelledby="g-privacy">
           <h3 id="g-privacy">Privacy</h3>
           <div class="panel">
-            <p class="privacy-text"><span data-icon="shield-check" data-icon-size="18"></span>Blink works entirely on your computer. It has no account, no analytics and no network access. Your reminders and settings are saved in one small file on this device and are never sent anywhere.</p>
+            <p class="privacy-text"><span class="privacy-icon" data-icon="shield-check" data-icon-size="18"></span><span><span data-app-name></span> works entirely on your computer. It has no account, no analytics and no network access. Your reminders and settings are saved in one small file on this device and are never sent anywhere.</span></p>
             <p class="hint" id="about"></p>
             <p class="hint" id="data-path"></p>
           </div>
