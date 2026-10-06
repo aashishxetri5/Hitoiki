@@ -6,7 +6,7 @@ A small desktop app that quietly reminds you to look after yourself: blink, drin
 
 - **A home screen you can read at a glance.** One ring per reminder fills toward its next nudge, each in its own colour, and the centre counts down to what is next. Hover a reminder to bring its ring forward. The glow behind it follows the time of day.
 - **Reminders on your own schedule.** Every reminder has its own interval, from every 2 seconds to every 24 hours. Blink every 4 seconds, drink water every 30 minutes, stretch every hour.
-- **Animated on-screen cues.** A blinking eye, a glass that fills with water, a back that straightens, arms that stretch, a breathing circle, a view into the distance, or any icon you choose. They are click-through and never take focus.
+- **Animated on-screen cues.** A pair of friendly eyes that blink, a glass that fills with water, a back that straightens, arms that stretch, a breathing circle, a view into the distance, or any icon you choose. They are click-through and never take focus.
 - **Starter reminders.** Blink, Drink water, Rest your eyes (20-20-20), Check your posture, Stretch and Breathe, ready to switch on, plus your own.
 - **Sound.** Each reminder can play a soft tick, chime, droplet or bell, synthesized on the fly. No audio files.
 - **Pause and snooze.** "Take a break" for 15 minutes, 30 minutes, an hour or the rest of the day, from the home screen or the tray. The home screen changes mood while you rest, are off duty, or have switched reminders off.

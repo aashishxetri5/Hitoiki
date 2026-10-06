@@ -50,29 +50,31 @@
 
 /* ---------- Blink ---------- */
 
-.art-blink .sclera-a { stop-color: #ffffff; }
-.art-blink .sclera-b { stop-color: #b7c9e3; }
-.art-blink .iris-a { stop-color: color-mix(in srgb, var(--accent) 55%, #fff); }
-.art-blink .iris-b { stop-color: color-mix(in srgb, var(--accent) 70%, #000); }
-.art-blink .iris-ring { fill: none; stroke: rgba(4, 18, 40, 0.55); stroke-width: 3; }
-.art-blink .pupil { fill: #070d1c; }
-.art-blink .glint { fill: #fff; opacity: 0.95; }
-.art-blink .glint-soft { opacity: 0.6; }
-.art-blink .lid-fill { fill: #1f2d47; }
-.art-blink .lid-edge { fill: none; stroke: #0c1424; stroke-width: 6; stroke-linecap: round; }
-.art-blink .eye-outline { fill: none; stroke: #fff; stroke-width: 5; stroke-linejoin: round; }
-/* The lid blinks over and over; each blink is quick and the eye then rests open. */
-.art-blink .eye-lid { transform: translateY(-100px); animation: lid 1s cubic-bezier(0.45, 0, 0.3, 1) 0.15s infinite; }
-/* The iris glances to one side once, at the start. */
-.art-blink .eye-look { animation: glance 1.1s ease-in-out 0.1s both; }
+/* Flat, rounded shapes with big highlights and no outlines: friendly rather than lifelike. */
+.art-blink .sclera { fill: #fffdf8; }
+.art-blink .iris { fill: color-mix(in srgb, var(--accent) 78%, #fff); }
+.art-blink .pupil { fill: #101528; }
+.art-blink .glint { fill: #fff; }
+.art-blink .glint-small { opacity: 0.75; }
+.art-blink .smile { fill: none; stroke: #fff; stroke-width: 5; stroke-linecap: round; opacity: 0.92; }
+/* Cartoon blink: each eye squashes shut and springs back, over and over; between blinks it rests open. */
+.art-blink .eye { transform-box: fill-box; transform-origin: center; animation: blink 1s cubic-bezier(0.45, 0, 0.3, 1) 0.15s infinite; }
+/* Both pupils glance to one side once, at the start, as if noticing you. They also fade out
+   while the eyes are shut, so a closed eye is a clean line rather than a squashed iris. */
+.art-blink .gaze { animation: glance 1.1s ease-in-out 0.1s both, shut 1s linear 0.15s infinite; }
 
-@keyframes lid {
-  0%, 38% { transform: translateY(-100px); }
-  50%, 58% { transform: translateY(0); }
-  72%, 100% { transform: translateY(-100px); }
+@keyframes blink {
+  0%, 38% { transform: scaleY(1); }
+  50%, 58% { transform: scaleY(0.08); }
+  72%, 100% { transform: scaleY(1); }
+}
+@keyframes shut {
+  0%, 40% { opacity: 1; }
+  47%, 59% { opacity: 0; }
+  70%, 100% { opacity: 1; }
 }
 @keyframes glance {
-  50% { transform: translateX(8px); }
+  50% { transform: translateX(6px); }
 }
 
 /* ---------- Drink water ---------- */
@@ -188,5 +190,4 @@
 /* Scenes show their finished pose. */
 @media (prefers-reduced-motion: reduce) {
   .art, .art * { animation: none !important; }
-  .art-blink .eye-lid { transform: translateY(-100px); }
 }

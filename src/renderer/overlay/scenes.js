@@ -9,8 +9,6 @@ import { iconPaths } from '../shared/icons.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-/** Almond-shaped outline of the open eye. */
-const EYE_OUTLINE = 'M12 100 C50 50 150 50 188 100 C150 150 50 150 12 100 Z';
 /** Glass outline, wide at the rim and narrower at the base. */
 const GLASS_OUTLINE = 'M62 52 H138 L128 164 Q127 172 119 172 H81 Q73 172 72 164 Z';
 /** Two full wave periods (100 units each) so the loop can slide by one period without a seam. */
@@ -18,27 +16,24 @@ const WAVE = 'q25 -10 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 V220 H-100 
 
 /** @type {Readonly<Record<string, () => string>>} Scene id → SVG inner markup. */
 const MARKUP = Object.freeze({
+  // Two round, friendly eyes and a small smile. Each eye is a nested group because the outer
+  // one positions it with an attribute and the inner one is animated with CSS.
   [SceneId.BLINK]: () => `
-    <defs>
-      <clipPath id="eye-clip"><path d="${EYE_OUTLINE}"/></clipPath>
-      <radialGradient id="eye-sclera" cx="50%" cy="50%" r="62%"><stop offset="55%" class="sclera-a"/><stop offset="100%" class="sclera-b"/></radialGradient>
-      <radialGradient id="eye-iris" cx="50%" cy="38%" r="68%"><stop offset="0%" class="iris-a"/><stop offset="100%" class="iris-b"/></radialGradient>
-    </defs>
-    <g clip-path="url(#eye-clip)">
-      <rect x="0" y="40" width="200" height="120" fill="url(#eye-sclera)"/>
-      <g class="eye-look">
-        <circle cx="100" cy="100" r="37" fill="url(#eye-iris)"/>
-        <circle cx="100" cy="100" r="37" class="iris-ring"/>
-        <circle cx="100" cy="100" r="16" class="pupil"/>
-        <circle cx="87" cy="86" r="7" class="glint"/>
-        <circle cx="110" cy="112" r="3" class="glint glint-soft"/>
-      </g>
-      <g class="eye-lid">
-        <path class="lid-fill" d="M-10 -80 H210 V100 H188 C150 150 50 150 12 100 H-10 Z"/>
-        <path class="lid-edge" d="M12 100 C50 150 150 150 188 100"/>
-      </g>
-    </g>
-    <path class="eye-outline" d="${EYE_OUTLINE}"/>`,
+    <g transform="translate(100 98) scale(1.3) translate(-100 -105)">
+      ${[66, 134].map((x) => `
+      <g transform="translate(${x} 90)">
+        <g class="eye">
+          <ellipse class="sclera" rx="27" ry="33"/>
+          <g class="gaze">
+            <circle class="iris" r="18"/>
+            <circle class="pupil" r="10.5"/>
+            <circle class="glint" cx="-6" cy="-7" r="5.5"/>
+            <circle class="glint glint-small" cx="6" cy="7" r="2.4"/>
+          </g>
+        </g>
+      </g>`).join('')}
+      <path class="smile" d="M82 142 Q100 158 118 142"/>
+    </g>`,
 
   [SceneId.WATER]: () => `
     <defs><clipPath id="glass-clip"><path d="${GLASS_OUTLINE}"/></clipPath></defs>

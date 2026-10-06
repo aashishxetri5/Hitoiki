@@ -15,7 +15,7 @@ import { Limits, SceneId, SoundId } from './constants.js';
 
 /** @type {readonly Scene[]} Each scene has its own colour, so a reminder is recognisable at a glance. */
 export const SCENES = Object.freeze([
-  { id: SceneId.BLINK, name: 'Blinking eye', icon: 'eye', accent: '#5b8def' },
+  { id: SceneId.BLINK, name: 'Blinking eyes', icon: 'eye', accent: '#5b8def' },
   { id: SceneId.WATER, name: 'Water glass', icon: 'glass-water', accent: '#22c3d6' },
   { id: SceneId.POSTURE, name: 'Sit tall', icon: 'accessibility', accent: '#f5a524' },
   { id: SceneId.STRETCH, name: 'Stretch', icon: 'person-standing', accent: '#a78bfa' },
