@@ -7,7 +7,7 @@ import { app, Notification, powerMonitor } from 'electron';
 import { APP_ID, APP_NAME, Push } from '../shared/constants.js';
 import { ReminderController } from './app/reminder-controller.js';
 import { registerIpc } from './app/ipc.js';
-import { IS_WINDOWS, Paths } from './constants.js';
+import { IS_LINUX, IS_WINDOWS, Paths } from './constants.js';
 import { SettingsService } from './settings/settings-service.js';
 import { Presence } from './services/presence.js';
 import { applyLoginItem, denyAllPermissions, wasStartedHidden } from './services/system-integration.js';
@@ -22,8 +22,13 @@ import { TrayController } from './windows/tray.js';
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('in-process-gpu');
 app.commandLine.appendSwitch('enable-features', 'NetworkServiceInProcess2');
+// Linux only draws transparent windows (the reminder) when asked to; it also needs a compositor.
+if (IS_LINUX) app.commandLine.appendSwitch('enable-transparent-visuals');
 // The overlay plays sounds without a user gesture.
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
+/** Settings the tray menu and tooltip show. */
+const TRAY_SETTINGS = ['enabled', 'reminders', 'pausedUntil', 'activeHours'];
 
 /**
  * Creates and connects every service, then starts the app.
@@ -74,7 +79,8 @@ async function startApp() {
     const s = settings.get();
     dashboard.send(Push.SETTINGS, s);
     if (keys.includes('launchAtLogin')) applyLoginItem(s.launchAtLogin);
-    updateTray();
+    // Dragging a slider changes settings many times a second; only rebuild the menu when it would differ.
+    if (keys.some((key) => TRAY_SETTINGS.includes(key))) updateTray();
   });
   controller.on('status', updateTray);
   controller.on('change', () => {

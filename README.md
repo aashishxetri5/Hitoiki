@@ -28,7 +28,7 @@ The builds are not code-signed yet:
 
 - **Windows** may show "Windows protected your PC". Choose **More info, then Run anyway**.
 - **macOS** may say the app is damaged. Move it to Applications and run `xattr -cr /Applications/Blink.app`.
-- **Linux** needs a desktop with a compositor so the transparent reminder can be drawn. Make the AppImage executable and run it.
+- **Linux** needs a desktop with a compositor so the transparent reminder can be drawn. On GNOME the tray icon needs the AppIndicator extension. Make the AppImage executable and run it.
 
 ## Privacy
 
