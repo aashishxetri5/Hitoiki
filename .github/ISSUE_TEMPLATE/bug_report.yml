@@ -1,0 +1,57 @@
+name: Bug report
+description: Something in Hitoiki doesn't work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. If it's a security issue, please [report it privately](https://github.com/aashishxetri5/Hitoiki/security/advisories/new) instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect to happen instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Settings
+        2. Turn on "Only remind me during set hours"
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Hitoiki version
+      description: Shown at the bottom of Settings.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install Hitoiki?
+      options:
+        - Microsoft Store
+        - Windows installer (.exe)
+        - Linux AppImage
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: On Linux, include the desktop and session type.
+      placeholder: Windows 11 24H2, or Ubuntu 24.04 (GNOME on Wayland)
+    validations:
+      required: true
+  - type: textarea
+    id: more
+    attributes:
+      label: Screenshots or anything else
+      description: Please leave out anything personal. Your settings file isn't needed unless someone asks for it.

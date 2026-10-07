@@ -44,6 +44,9 @@ export function createWindow(options, { label, role }) {
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
+      // Where the system has no spellchecker (Linux), Chromium downloads dictionaries from
+      // Google's servers; the app makes no network requests, so spellcheck stays off.
+      spellcheck: false,
       additionalArguments: [channels],
       ...options.webPreferences,
     },

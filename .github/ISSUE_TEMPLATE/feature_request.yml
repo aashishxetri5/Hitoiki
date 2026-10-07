@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest an idea for Hitoiki.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the habit or situation, rather than a specific solution. For example, "I want a reminder only on days I work from home."
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Hitoiki help?
+      description: If you have an idea of how it could work, describe it here.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today instead?

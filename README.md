@@ -20,7 +20,7 @@ The name, said *hee-toh-EE-kee*, is Japanese 一息: "a breath, a breather". *Hi
 
 ## Download
 
-Get the installer for your system from the project's releases page.
+Get the installer for your system from the [releases page](https://github.com/aashishxetri5/Hitoiki/releases/latest).
 
 | Platform | File |
 | --- | --- |
@@ -30,11 +30,11 @@ Get the installer for your system from the project's releases page.
 Each release lists the SHA-256 of every file in `SHA256SUMS.txt`.
 
 - **Windows**: the installer is not code-signed yet, so Windows may show "Windows protected your PC". Choose **More info, then Run anyway**.
-- **Linux** needs a desktop with a compositor so the transparent reminder can be drawn. On GNOME the tray icon needs the AppIndicator extension. Make the AppImage executable and run it.
+- **Linux** needs a desktop with a compositor so the transparent reminder can be drawn. Make the AppImage executable (`chmod +x Hitoiki-*.AppImage`) and run it. On Ubuntu 24.04 and later, if it reports a missing `libfuse.so.2`, run `sudo apt install libfuse2t64`. On GNOME, the tray icon needs the AppIndicator extension.
 
 ## Privacy
 
-Hitoiki works entirely on your computer. It has no account, no analytics, no update check and no network access. Your reminders and settings are saved in one small file, `settings.json`, in your user data folder (`%APPDATA%\Hitoiki` on Windows). Nothing is sent anywhere, and the app refuses every device and notification permission.
+Hitoiki works entirely on your computer. It has no account, no analytics, no update check and no network access, and it refuses every device and notification permission. Your reminders and settings are saved in one small file on your device and are never sent anywhere. The [privacy policy](PRIVACY.md) has the details, including how to delete everything the app has saved.
 
 ## Resource use
 
@@ -55,76 +55,19 @@ How it stays light:
 - Software rendering, with the GPU and network services running inside the main process.
 - Animations are brief one-shot motions that hold still afterwards. The few endless loops (breathing, pulses) run at 24 frames per second, and nothing that moves uses a blur filter.
 
-## Development
+## Support
 
-Requires Node.js 22.12 or newer.
+- **Questions, bugs and ideas:** [open an issue](https://github.com/aashishxetri5/Hitoiki/issues/new/choose).
+- **Security problems:** please report them privately, as described in [SECURITY.md](SECURITY.md).
 
-```bash
-npm install
-npm start          # launches the app
-npm test           # unit tests (node:test)
-npm run lint
-npm run dist       # builds an installer for the current platform into dist/
-```
+## Contributing
 
-If `npm start` opens nothing or reports that `BrowserWindow` is missing, your shell has `ELECTRON_RUN_AS_NODE` set (VS Code terminals can do this). Clear it first: `Remove-Item Env:ELECTRON_RUN_AS_NODE` in PowerShell, or `unset ELECTRON_RUN_AS_NODE` in a POSIX shell.
-
-The icons in `build/` (`icon.png`, `icon.ico` and the Store images in `build/appx/`) are drawn by `npm run assets`, which runs automatically before `npm run dist` and `npm run dist:store`, and are not committed. The display font (Fraunces, SIL Open Font License) is copied into the repo by `npm run fonts:vendor`, so the app never fetches fonts.
-
-### Design
-
-The interface is deliberately quiet so the reminders can carry the colour:
-
-- Warm paper by day and twilight by night, following the system theme (see `src/renderer/shared/tokens.css`).
-- Controls are ink-coloured, surfaces are soft and borderless, and the only colour on screen belongs to a reminder, so colour always means "this reminder".
-- Headings and countdowns use a serif display face; everything else uses the system font.
-- There are no pages. The home screen is the product; the editor and settings slide over it as sheets.
-- The window's title bar is part of the page, with the system's window buttons tinted to match.
-
-### Project structure
-
-```
-scripts/                 icon rendering and icon vendoring
-src/
-  shared/                code used by every process: constants, catalog, formatting, icons, types
-  preload.cjs            the IPC bridge exposed to windows as window.api
-  main/                  Electron main process
-    index.js             startup wiring and app lifecycle
-    core/                pure logic, unit-tested: scheduler, active hours, reminder validation, placement
-    settings/            settings schema, validation, recovery and persistence
-    services/            OS integration: away/full-screen detection, start at login, permissions
-    windows/             settings window, on-screen reminder window, tray, icons
-    app/                 orchestration: the reminder controller and IPC handlers
-  renderer/
-    overlay/             the on-screen reminder (scenes.css and scenes.js are also used by the editor's preview)
-    dashboard/           home screen, sheets and components (rings, hero, rows, editor, settings)
-    shared/              helpers, design tokens and the bundled font used by both windows
-test/                    unit tests
-```
-
-### How it works
-
-The main process owns a `Scheduler` that sleeps on a single timer. When a reminder falls due, the `ReminderController` asks `Presence` whether anyone is there to see it (idle time, locked screen, full-screen app) and, if so, hands it to the `OverlayWindow`. That creates a small transparent, click-through, always-on-top window on the display under your mouse, plays the scene, and hides it again. The settings window is a separate sandboxed page that talks to the main process over a role-scoped IPC bridge.
-
-When the schedule is closed (master switch off, a pause, outside active hours) the scheduler sets its timer for the moment it reopens, or for no time at all, and every countdown restarts when it does. The same happens after your computer wakes from sleep or is unlocked, so a long absence never produces a burst of reminders.
-
-### Adding a scene
-
-1. Add an id to `SceneId` in `src/shared/constants.js` and an entry to `SCENES` in `src/shared/catalog.js`.
-2. Draw it in `src/renderer/overlay/scenes.js` and style it in `src/renderer/overlay/scenes.css`. Let it rest in its finished pose, keep motion brief, and avoid filters on anything that moves. The editor's live preview picks it up automatically.
-3. Run `npm test`. The catalog test fails until every layer knows about the new scene.
-
-To use a new Lucide icon, add its name to `scripts/vendor-icons.js` and run `npm run icons:vendor`.
-
-### Releasing
-
-1. Update the version in `package.json` and add an entry to `CHANGELOG.md`.
-2. Commit, then push a tag: `git tag v1.0.0 && git push --tags`.
-3. The Release workflow builds the Windows installer and the Linux AppImage, and attaches them to a draft GitHub Release with `SHA256SUMS.txt`. Review the draft, then publish it.
-4. The same run builds the Microsoft Store package. Download the `microsoft-store-package` artifact from the run and upload the `.appx` to Partner Center as a new submission.
-
-To build the Store package locally, run `npm run dist:store`. Its identity (`build.appx` in `package.json`) must match Partner Center's Product identity page exactly. Store installs can't register a login item, so they start through a startup task (`build/appx-startup-task.xml`) that the user turns on in Windows Settings; the settings sheet links there. Microsoft signs the package when it is published.
+Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the development setup, the project's standards and how the app works inside. [RELEASE.md](RELEASE.md) describes how releases are made, and [CHANGELOG.md](CHANGELOG.md) lists what changed in each one.
 
 ## License
 
-[MIT](LICENSE). Icons are from [Lucide](https://lucide.dev) (ISC License).
+Hitoiki is released under the [MIT License](LICENSE). It includes:
+
+- Icons from [Lucide](https://lucide.dev) (ISC License).
+- The Fraunces typeface (SIL Open Font License 1.1, included as `src/renderer/shared/fonts/OFL.txt`).
+- [Electron](https://www.electronjs.org) (MIT License) and Chromium, whose licenses are installed alongside the app.
