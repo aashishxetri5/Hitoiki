@@ -17,7 +17,7 @@ const OUT_FILE = path.join(ROOT, 'src', 'shared', 'icons.js');
 const ICON_NAMES = [
   // Navigation and actions
   'bell-ring', 'bell-off', 'settings', 'plus', 'minus', 'x', 'check', 'play', 'trash', 'power',
-  'rotate-ccw', 'chevron-right', 'volume-2', 'lock', 'shield-check',
+  'rotate-ccw', 'chevron-right', 'volume-2', 'lock', 'shield-check', 'external-link',
   'info', 'circle-check', 'circle-alert', 'triangle-alert',
   // Scenes
   'eye', 'glass-water', 'accessibility', 'person-standing', 'wind', 'mountain',

@@ -5,8 +5,9 @@
 import path from 'node:path';
 import { app, ipcMain } from 'electron';
 import { Invoke, Send } from '../../shared/constants.js';
-import { Paths } from '../constants.js';
+import { IS_STORE_BUILD, Paths } from '../constants.js';
 import { normalizeReminder } from '../core/reminder.js';
+import { openStartupSettings } from '../services/system-integration.js';
 import { appIcon } from '../windows/app-icons.js';
 
 /**
@@ -67,7 +68,9 @@ export function registerIpc({ settings, controller, fullscreenSupported }) {
     icon: appIcon().toDataURL(),
     settingsPath: path.join(app.getPath('userData'), Paths.SETTINGS_FILE),
     fullscreenSupported,
+    storeBuild: IS_STORE_BUILD,
   }));
+  handle(Invoke.STARTUP_SETTINGS_OPEN, () => openStartupSettings());
   handle(Invoke.PAUSE, (optionId) => {
     if (optionId === null) controller.resume();
     else if (!controller.pause(optionId)) throw new Error('Unknown pause length');

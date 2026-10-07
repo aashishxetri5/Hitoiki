@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:">
-  <title>Tend</title>
+  <title>Hitoiki</title>
   <link rel="stylesheet" href="../shared/tokens.css">
   <link rel="stylesheet" href="../overlay/scenes.css">
   <link rel="stylesheet" href="dashboard.css">
@@ -209,10 +209,15 @@
         <section class="group" aria-labelledby="g-general">
           <h3 id="g-general">General</h3>
           <div class="panel">
-            <label class="row">
+            <label class="row" id="login-item-row">
               <span class="row-copy">Start with your computer<small>Opens quietly in the system tray.</small></span>
               <input type="checkbox" class="switch" data-setting="launchAtLogin">
             </label>
+            <!-- Shown instead of the switch in the Microsoft Store version, which Windows starts. -->
+            <div class="row static" id="startup-task-row" hidden>
+              <span class="row-copy">Start with Windows<small>Opens quietly in the system tray. Turn it on or off in Windows startup settings.</small></span>
+              <button class="btn btn-secondary" id="startup-settings" type="button"><span data-icon="external-link" data-icon-size="16"></span>Open</button>
+            </div>
             <p class="hint">Closing this window keeps the app running in the tray. Quit from the tray menu.</p>
           </div>
         </section>

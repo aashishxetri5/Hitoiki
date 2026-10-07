@@ -12,6 +12,8 @@ const SRC_DIR = path.join(MAIN_DIR, '..');
 export const IS_MAC = process.platform === 'darwin';
 export const IS_WINDOWS = process.platform === 'win32';
 export const IS_LINUX = process.platform === 'linux';
+/** True when running from the Microsoft Store package (MSIX), which Windows installs and starts. */
+export const IS_STORE_BUILD = Boolean(process.windowsStore);
 
 export const Paths = Object.freeze({
   PRELOAD: path.join(SRC_DIR, 'preload.cjs'),

@@ -1,10 +1,15 @@
 {
-  "name": "tend",
-  "productName": "Tend",
+  "name": "hitoiki",
+  "productName": "Hitoiki",
   "version": "1.0.0",
   "description": "A lightweight tray app that gently reminds you to blink, drink water, stretch, sit tall and breathe, with animated on-screen cues.",
   "author": "Aashish Katwal",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aashishxetri5/Hitoiki.git"
+  },
+  "homepage": "https://github.com/aashishxetri5/Hitoiki#readme",
   "type": "module",
   "main": "src/main/index.js",
   "engines": {
@@ -18,7 +23,8 @@
     "lint": "eslint .",
     "test": "node --test \"test/**/*.test.js\"",
     "predist": "npm run assets",
-    "dist": "electron-builder --publish never"
+    "dist": "electron-builder --publish never",
+    "dist:store": "npm run assets && electron-builder --win appx --publish never"
   },
   "dependencies": {
     "koffi": "^3.3.2"
@@ -33,8 +39,8 @@
     "lucide": "^1.49.0"
   },
   "build": {
-    "appId": "com.tend.app",
-    "productName": "Tend",
+    "appId": "io.github.aashishxetri5.hitoiki",
+    "productName": "Hitoiki",
     "copyright": "Copyright © 2026 Aashish Katwal",
     "directories": {
       "output": "dist",
@@ -48,6 +54,9 @@
       "node_modules/koffi/**"
     ],
     "npmRebuild": false,
+    "toolsets": {
+      "winCodeSign": "1.1.0"
+    },
     "win": {
       "target": [
         {
@@ -63,30 +72,28 @@
       "perMachine": false,
       "runAfterFinish": true,
       "createDesktopShortcut": false,
-      "artifactName": "Tend-Setup-${version}.${ext}"
+      "artifactName": "Hitoiki-Setup-${version}.${ext}"
     },
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
+    "appx": {
+      "identityName": "AashishKatwal.Hitoiki",
+      "publisher": "CN=C8496BEF-14A8-45B4-A229-D9FB3A6D7B16",
+      "publisherDisplayName": "Aashish Katwal",
+      "applicationId": "Hitoiki",
+      "backgroundColor": "transparent",
+      "customExtensionsPath": "build/appx-startup-task.xml",
+      "languages": [
+        "en-US"
       ],
-      "category": "public.app-category.healthcare-fitness",
-      "artifactName": "Tend-${version}-${arch}.${ext}",
-      "extendInfo": {
-        "LSUIElement": true
-      }
+      "minVersion": "10.0.19041.0",
+      "maxVersionTested": "10.0.26100.0",
+      "artifactName": "Hitoiki-${version}.${ext}"
     },
     "linux": {
       "target": [
         "AppImage"
       ],
       "category": "Utility",
-      "artifactName": "Tend-${version}.${ext}"
+      "artifactName": "Hitoiki-${version}.${ext}"
     }
   }
 }

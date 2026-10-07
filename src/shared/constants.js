@@ -3,8 +3,8 @@
  * Anything that more than one process needs to agree on lives here.
  */
 
-export const APP_NAME = 'Tend';
-export const APP_ID = 'com.tend.app';
+export const APP_NAME = 'Hitoiki';
+export const APP_ID = 'io.github.aashishxetri5.hitoiki';
 
 /** Animated scenes the overlay can play. */
 export const SceneId = Object.freeze({
@@ -85,6 +85,7 @@ export const Invoke = Object.freeze({
   RUNTIME_GET: 'runtime:get',
   APP_INFO: 'app:info',
   PAUSE: 'schedule:pause',
+  STARTUP_SETTINGS_OPEN: 'system:startup-settings',
 });
 
 /** Fire-and-forget channels (renderer → main, `ipcRenderer.send`). */

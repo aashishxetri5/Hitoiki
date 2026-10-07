@@ -14,9 +14,23 @@ test('package metadata matches the app name and id in the code', () => {
 });
 
 test('installer file names use the app name', () => {
-  for (const target of ['nsis', 'mac', 'linux']) {
+  for (const target of ['nsis', 'appx', 'linux']) {
     assert.ok(pkg.build[target].artifactName.startsWith(`${APP_NAME}-`), `${target} artifact is not named after the app`);
   }
+});
+
+test('the Store package identity belongs to this app', () => {
+  const { appx } = pkg.build;
+  assert.equal(appx.applicationId, APP_NAME);
+  assert.ok(appx.identityName.endsWith(`.${APP_NAME}`), 'identityName must be the one Partner Center reserved for the app');
+  assert.match(appx.publisher, /^CN=[0-9A-F-]{36}$/);
+});
+
+test('the Store startup task launches this app into the tray', () => {
+  const task = read(pkg.build.appx.customExtensionsPath);
+  assert.ok(task.includes(`Executable="app\\${pkg.build.productName}.exe"`), 'Executable must match productName');
+  assert.ok(task.includes(`DisplayName="${APP_NAME}"`), 'DisplayName must match the app name');
+  assert.ok(task.includes('Parameters="--hidden"'), 'the task must start the app hidden in the tray');
 });
 
 test('page titles use the app name', () => {

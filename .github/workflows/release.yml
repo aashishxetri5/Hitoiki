@@ -1,5 +1,12 @@
 name: Release
 
+# Push a tag like v1.0.0 to build a release.
+#
+# - The Windows installer and the Linux AppImage go to a draft GitHub Release, with a
+#   SHA256SUMS.txt file so downloads can be checked. Review the draft, then publish it.
+# - The Microsoft Store package is not attached to the release, because it only installs
+#   through the Store. Download it from this run's "microsoft-store-package" artifact and
+#   upload it to Partner Center.
 on:
   push:
     tags: ['v*']
@@ -8,39 +15,67 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  installers:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            platform: --win
+            files: dist/*.exe
+          - os: ubuntu-latest
+            platform: --linux
+            files: dist/*.AppImage
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run dist
-      - uses: actions/upload-artifact@v4
+      - run: npm run assets
+      - run: npx electron-builder ${{ matrix.platform }} --publish never
+      - uses: actions/upload-artifact@v7
         with:
-          name: installers-${{ matrix.os }}
-          path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
+          name: installer-${{ matrix.os }}
+          path: ${{ matrix.files }}
           if-no-files-found: error
 
-  publish:
-    needs: build
+  # Separate from the installers, so a problem with the Store package never holds up the release.
+  store:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run dist:store
+      - uses: actions/upload-artifact@v7
+        with:
+          name: microsoft-store-package
+          path: dist/*.appx
+          if-no-files-found: error
+
+  release:
+    needs: installers
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: installers
           merge-multiple: true
-      - uses: softprops/action-gh-release@v2
+      - name: Write checksums
+        working-directory: installers
+        run: sha256sum -- * > SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v3
         with:
           draft: true
+          name: Hitoiki ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
           files: installers/*

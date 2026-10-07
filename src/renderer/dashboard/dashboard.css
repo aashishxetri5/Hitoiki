@@ -52,12 +52,16 @@ body[data-state="off"], body[data-state="hours"] { --aura-strength: 0.4; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 0 14px 0 22px;
   -webkit-app-region: drag;
+  container: header / inline-size;
 }
 html[data-platform="mac"] .header { padding-left: 86px; }
 .header button, .header label { -webkit-app-region: no-drag; }
 
 .wordmark { display: flex; align-items: center; gap: 9px; font: 600 22px/1 var(--font-display); letter-spacing: -0.03em; text-transform: lowercase; }
 .wordmark img { border-radius: 8px; }
+/* The window buttons take a different share of the title bar on each platform, so this keys
+   off the header's own width: when the name and the controls no longer fit, only the logo stays. */
+@container header (max-width: 260px) { .wordmark span { display: none; } }
 .logo:not([src]), #app-logo:not([src]) { visibility: hidden; }
 
 .header-actions { display: flex; align-items: center; gap: 6px; }
@@ -298,6 +302,7 @@ input[type="time"] { font-variant-numeric: tabular-nums; }
 .group > h3 { font: 600 18px/1.2 var(--font-display); letter-spacing: -0.01em; }
 .panel { display: grid; gap: 14px; padding: 18px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-1); }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+.row.static { cursor: default; }
 .row-copy small { display: block; color: var(--muted); font-size: 13px; margin-top: 1px; }
 .stack { display: grid; gap: 16px; }
 .slider-block { display: grid; gap: 6px; }

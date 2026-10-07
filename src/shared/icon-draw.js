@@ -1,8 +1,9 @@
 /**
- * @file Renders the application icon as PNG: concentric progress rings, in the colours of the
- * reminders, on a dark tile; the same rings in grey when reminders are not running. Drawn from
- * signed distance fields so it stays crisp at every size, from 16 px tray icons to the 1024 px
- * installer artwork. Pure Node so that both the app and the build scripts can use it.
+ * @file Renders the application icon as PNG or Windows .ico: concentric progress rings, in the
+ * colours of the reminders, on a dark tile; the same rings in grey when reminders are not
+ * running. Drawn from signed distance fields so it stays crisp at every size, from 16 px tray
+ * icons to the 1024 px installer artwork. Pure Node so that both the app and the build scripts
+ * can use it.
  */
 
 import { Buffer } from 'node:buffer';
@@ -10,6 +11,12 @@ import zlib from 'node:zlib';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const TWO_PI = Math.PI * 2;
+
+/** Sizes in the Windows .ico file; the shell picks the closest one for each view and display scale. */
+export const ICO_SIZES = Object.freeze([16, 20, 24, 32, 40, 48, 64, 256]);
+/** The largest image an .ico directory entry can describe. */
+const ICO_MAX_SIZE = 256;
+const BITMAP_HEADER_BYTES = 40;
 
 /** Colours as [r, g, b] in 0–255. */
 const PALETTE = {
@@ -79,18 +86,19 @@ function chunk(type, data) {
 }
 
 /**
- * Encodes square RGBA pixels as a PNG file.
- * @param {number} size - Width and height in pixels.
+ * Encodes RGBA pixels as a PNG file.
+ * @param {number} width - Width in pixels.
+ * @param {number} height - Height in pixels.
  * @param {Buffer} rgba - Non-premultiplied RGBA pixels, row by row.
  * @returns {Buffer} PNG file contents.
  */
-function encodePng(size, rgba) {
-  const stride = size * 4 + 1;
-  const raw = Buffer.alloc(stride * size);
-  for (let y = 0; y < size; y++) rgba.copy(raw, y * stride + 1, y * size * 4, (y + 1) * size * 4);
+function encodePng(width, height, rgba) {
+  const stride = width * 4 + 1;
+  const raw = Buffer.alloc(stride * height);
+  for (let y = 0; y < height; y++) rgba.copy(raw, y * stride + 1, y * width * 4, (y + 1) * width * 4);
   const header = Buffer.alloc(13);
-  header.writeUInt32BE(size, 0);
-  header.writeUInt32BE(size, 4);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
   header[8] = 8; // bit depth
   header[9] = 6; // RGBA
   return Buffer.concat([PNG_SIGNATURE, chunk('IHDR', header), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
@@ -194,24 +202,111 @@ function layersAt(u, v, coverage, colors, rings) {
  * @returns {Buffer} PNG file contents.
  */
 export function drawIcon(size, inactive = false) {
-  const colors = inactive ? PALETTE.inactive : PALETTE.active;
-  const rings = size <= SMALL_ICON_PX ? RINGS_SMALL : RINGS_DETAILED;
-  // Small icons are supersampled so thin strokes keep their shape.
-  const samples = size <= 64 ? 4 : size <= 256 ? 2 : 1;
-  const aa = 1.2 / (size * samples);
-  const coverage = (d) => Math.min(1, Math.max(0, 0.5 - d / aa));
-  const rgba = Buffer.alloc(size * size * 4);
+  return drawIconOnCanvas(size, size, size, inactive);
+}
 
+/**
+ * Draws the app icon centred on a transparent canvas, such as a wide Start-menu tile.
+ * @param {number} width - Canvas width in pixels.
+ * @param {number} height - Canvas height in pixels.
+ * @param {number} iconSize - Edge length of the icon in pixels, at most the canvas's shorter side.
+ * @param {boolean} [inactive=false] - Grey variant, shown while reminders are not running.
+ * @returns {Buffer} PNG file contents.
+ */
+export function drawIconOnCanvas(width, height, iconSize, inactive = false) {
+  return encodePng(width, height, renderIcon(width, height, iconSize, inactive));
+}
+
+/**
+ * Draws the app icon as a Windows .ico file. Images below 256 px are stored as 32-bit bitmaps,
+ * the form every tool reads (the installer builder included); the 256 px image is stored as
+ * PNG, as Windows expects.
+ * @param {readonly number[]} [sizes=ICO_SIZES] - Edge lengths in pixels, at most 256.
+ * @returns {Buffer} .ico file contents.
+ */
+export function drawIco(sizes = ICO_SIZES) {
+  const images = sizes.map((size) => {
+    const rgba = renderIcon(size, size, size, false);
+    return size >= ICO_MAX_SIZE ? encodePng(size, size, rgba) : encodeIcoBitmap(size, rgba);
+  });
+  const directory = Buffer.alloc(6 + 16 * sizes.length);
+  directory.writeUInt16LE(1, 2); // type: icon
+  directory.writeUInt16LE(sizes.length, 4);
+  let offset = directory.length;
+  sizes.forEach((size, i) => {
+    const entry = 6 + 16 * i;
+    // A width or height of 0 means 256.
+    directory[entry] = size % ICO_MAX_SIZE;
+    directory[entry + 1] = size % ICO_MAX_SIZE;
+    directory.writeUInt16LE(1, entry + 4); // colour planes
+    directory.writeUInt16LE(32, entry + 6); // bits per pixel
+    directory.writeUInt32LE(images[i].length, entry + 8);
+    directory.writeUInt32LE(offset, entry + 12);
+    offset += images[i].length;
+  });
+  return Buffer.concat([directory, ...images]);
+}
+
+/**
+ * Encodes square pixels as an .ico bitmap: a BITMAPINFOHEADER, BGRA rows from the bottom up,
+ * then an all-clear AND mask, since the alpha channel already carries the transparency.
+ * @param {number} size - Width and height in pixels.
+ * @param {Buffer} rgba - Non-premultiplied RGBA pixels, row by row.
+ * @returns {Buffer} The bitmap as stored in the .ico file.
+ */
+function encodeIcoBitmap(size, rgba) {
+  const pixelBytes = size * size * 4;
+  const maskBytes = Math.ceil(size / 32) * 4 * size;
+  const out = Buffer.alloc(BITMAP_HEADER_BYTES + pixelBytes + maskBytes);
+  out.writeUInt32LE(BITMAP_HEADER_BYTES, 0);
+  out.writeInt32LE(size, 4);
+  out.writeInt32LE(size * 2, 8); // the colour rows and the mask rows together
+  out.writeUInt16LE(1, 12); // colour planes
+  out.writeUInt16LE(32, 14); // bits per pixel
+  out.writeUInt32LE(pixelBytes, 20);
   for (let y = 0; y < size; y++) {
+    const row = BITMAP_HEADER_BYTES + (size - 1 - y) * size * 4;
     for (let x = 0; x < size; x++) {
+      const from = (y * size + x) * 4;
+      const to = row + x * 4;
+      out[to] = rgba[from + 2];
+      out[to + 1] = rgba[from + 1];
+      out[to + 2] = rgba[from];
+      out[to + 3] = rgba[from + 3];
+    }
+  }
+  return out;
+}
+
+/**
+ * Renders the app icon centred on a transparent canvas.
+ * @param {number} width - Canvas width in pixels.
+ * @param {number} height - Canvas height in pixels.
+ * @param {number} iconSize - Edge length of the icon in pixels.
+ * @param {boolean} inactive - Grey variant, shown while reminders are not running.
+ * @returns {Buffer} Non-premultiplied RGBA pixels, row by row.
+ */
+function renderIcon(width, height, iconSize, inactive) {
+  const colors = inactive ? PALETTE.inactive : PALETTE.active;
+  const rings = iconSize <= SMALL_ICON_PX ? RINGS_SMALL : RINGS_DETAILED;
+  // Small icons are supersampled so thin strokes keep their shape.
+  const samples = iconSize <= 64 ? 4 : iconSize <= 256 ? 2 : 1;
+  const aa = 1.2 / (iconSize * samples);
+  const coverage = (d) => Math.min(1, Math.max(0, 0.5 - d / aa));
+  const left = (width - iconSize) / 2;
+  const top = (height - iconSize) / 2;
+  const rgba = Buffer.alloc(width * height * 4);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
       let r = 0;
       let g = 0;
       let b = 0;
       let a = 0;
       for (let sy = 0; sy < samples; sy++) {
         for (let sx = 0; sx < samples; sx++) {
-          const u = (x + (sx + 0.5) / samples) / size;
-          const v = (y + (sy + 0.5) / samples) / size;
+          const u = (x - left + (sx + 0.5) / samples) / iconSize;
+          const v = (y - top + (sy + 0.5) / samples) / iconSize;
           // Composite with "over" in premultiplied space.
           let pr = 0;
           let pg = 0;
@@ -229,7 +324,7 @@ export function drawIcon(size, inactive = false) {
           a += pa;
         }
       }
-      const i = (y * size + x) * 4;
+      const i = (y * width + x) * 4;
       const n = samples * samples;
       // Convert the averaged premultiplied colour back to straight alpha.
       rgba[i] = a > 0 ? Math.round(r / a) : 0;
@@ -238,5 +333,5 @@ export function drawIcon(size, inactive = false) {
       rgba[i + 3] = Math.round((a / n) * 255);
     }
   }
-  return encodePng(size, rgba);
+  return rgba;
 }

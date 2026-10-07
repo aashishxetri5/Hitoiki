@@ -7,7 +7,7 @@ import { app, Notification, powerMonitor } from 'electron';
 import { APP_ID, APP_NAME, Push } from '../shared/constants.js';
 import { ReminderController } from './app/reminder-controller.js';
 import { registerIpc } from './app/ipc.js';
-import { IS_LINUX, IS_WINDOWS, Paths } from './constants.js';
+import { IS_LINUX, IS_STORE_BUILD, IS_WINDOWS, Paths } from './constants.js';
 import { SettingsService } from './settings/settings-service.js';
 import { Presence } from './services/presence.js';
 import { applyLoginItem, denyAllPermissions, wasStartedHidden } from './services/system-integration.js';
@@ -35,7 +35,9 @@ const TRAY_SETTINGS = ['enabled', 'reminders', 'pausedUntil', 'activeHours'];
  * @returns {Promise<{ showDashboard: () => void, shutdown: () => void }>} Handles used by the lifecycle events.
  */
 async function startApp() {
-  app.setAppUserModelId(APP_ID);
+  // A Store install already has an identity from its package; overriding it would split the
+  // app's taskbar and notification entries.
+  if (!IS_STORE_BUILD) app.setAppUserModelId(APP_ID);
   const fullscreenSupported = await initUserState();
 
   const settings = new SettingsService(path.join(app.getPath('userData'), Paths.SETTINGS_FILE));

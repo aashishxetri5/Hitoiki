@@ -5,13 +5,18 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { app, session } from 'electron';
+import { app, session, shell } from 'electron';
 import { APP_NAME } from '../../shared/constants.js';
-import { IS_LINUX } from '../constants.js';
+import { IS_LINUX, IS_STORE_BUILD } from '../constants.js';
 
-/** Command-line flag that starts the app straight into the tray. */
+/**
+ * Command-line flag that starts the app straight into the tray. The Store package's startup
+ * task passes it too (see build/appx-startup-task.xml).
+ */
 const HIDDEN_FLAG = '--hidden';
 const AUTOSTART_FILE = `${APP_NAME.toLowerCase()}.desktop`;
+/** Windows Settings page listing the apps that start at sign-in. */
+const STARTUP_SETTINGS_URI = 'ms-settings:startupapps';
 
 /**
  * @returns {string[]} Arguments for the login item. In development Electron needs the app folder first.
@@ -41,16 +46,26 @@ function applyLinuxAutostart(enabled) {
 }
 
 /**
- * Registers or removes the app as a login item.
+ * Registers or removes the app as a login item. Store installs can't register one; they start
+ * through the package's startup task instead, which the user controls in Windows Settings.
  * @param {boolean} enabled - Whether to start with the OS.
  * @returns {void}
  */
 export function applyLoginItem(enabled) {
+  if (IS_STORE_BUILD) return;
   if (IS_LINUX) {
     applyLinuxAutostart(enabled);
     return;
   }
   app.setLoginItemSettings({ openAtLogin: enabled, path: process.execPath, args: loginArguments() });
+}
+
+/**
+ * Opens the Windows Settings page where Store installs are turned on or off at sign-in.
+ * @returns {Promise<void>}
+ */
+export function openStartupSettings() {
+  return shell.openExternal(STARTUP_SETTINGS_URI);
 }
 
 /** @returns {boolean} True when the app was launched to run in the background. */

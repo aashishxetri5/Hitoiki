@@ -11,7 +11,7 @@ import { showError } from './ui/toast.js';
  * @typedef {object} DashboardState
  * @property {import('../../shared/types.js').Settings | null} settings
  * @property {import('../../shared/types.js').RuntimeState | null} runtime
- * @property {{ version: string, platform: string, icon: string, settingsPath: string, fullscreenSupported: boolean } | null} info
+ * @property {{ version: string, platform: string, icon: string, settingsPath: string, fullscreenSupported: boolean, storeBuild: boolean } | null} info
  */
 
 /** @typedef {keyof DashboardState} StateKey */

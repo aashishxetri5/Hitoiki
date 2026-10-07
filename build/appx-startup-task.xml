@@ -1,0 +1,9 @@
+        <!-- Lets the Store version start at sign-in, straight into the tray (the hidden flag in
+             src/main/services/system-integration.js). Off by default, like the installer's
+             "Start with your computer" setting; users turn it on in Windows Settings > Apps >
+             Startup, which the settings sheet links to. Executable and DisplayName must match
+             productName in package.json (test/identity.test.js checks this). -->
+        <desktop:Extension Category="windows.startupTask" Executable="app\Hitoiki.exe" EntryPoint="Windows.FullTrustApplication"
+          xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10" uap10:Parameters="--hidden">
+          <desktop:StartupTask TaskId="StartAtSignIn" Enabled="false" DisplayName="Hitoiki" />
+        </desktop:Extension>

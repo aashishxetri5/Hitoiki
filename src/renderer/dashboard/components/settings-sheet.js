@@ -4,12 +4,12 @@
  */
 
 import { PRESETS, reminderFromPreset } from '../../../shared/catalog.js';
-import { APP_NAME, Send } from '../../../shared/constants.js';
+import { APP_NAME, Invoke, Send } from '../../../shared/constants.js';
 import { formatPercent } from '../../../shared/format.js';
 import { api } from '../../shared/bridge.js';
 import { $, h } from '../../shared/dom.js';
 import { POSITION_OPTIONS, WEEK_DAYS, describeHours } from '../copy.js';
-import { showToast } from '../ui/toast.js';
+import { showError, showToast } from '../ui/toast.js';
 import { bindRange, createChoiceGroup, setDisabled } from './controls.js';
 import { createSheet } from './sheet.js';
 
@@ -29,12 +29,30 @@ export function mountSettingsSheet(store) {
     toSlider: (v) => Math.round(v * 100),
     format: formatPercent,
   });
+  mountStartAtLogin(store);
   store.subscribe(['info'], ({ info }) => {
     if (!info) return;
     $('#about').textContent = `${APP_NAME} ${info.version}`;
     $('#data-path').textContent = `Settings file: ${info.settingsPath}`;
   });
   return sheet;
+}
+
+/**
+ * Starting with the computer: a switch for the installer and Linux builds, and a link to
+ * Windows' own startup settings for the Store version, which only Windows can turn on.
+ * @param {import('../store.js').Store} store - Dashboard store.
+ * @returns {void}
+ */
+function mountStartAtLogin(store) {
+  $('#startup-settings').addEventListener('click', () => {
+    api.invoke(Invoke.STARTUP_SETTINGS_OPEN).catch((err) => showError("Couldn't open Windows startup settings", err));
+  });
+  store.subscribe(['info'], ({ info }) => {
+    if (!info) return;
+    $('#login-item-row').hidden = info.storeBuild;
+    $('#startup-task-row').hidden = !info.storeBuild;
+  });
 }
 
 /**

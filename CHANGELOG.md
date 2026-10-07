@@ -12,3 +12,4 @@ First release.
 - Smart pause: away from the computer, locked screen and full-screen apps (Windows).
 - System tray menu, start with your computer, light and dark themes, reduced-motion support.
 - Everything stays on the device: no network access, accounts or analytics.
+- Available as a Windows installer, from the Microsoft Store, and as a Linux AppImage.
