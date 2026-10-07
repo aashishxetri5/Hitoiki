@@ -67,6 +67,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
+          # Only the installers; the Store package is uploaded to Partner Center, not released here.
+          pattern: installer-*
           path: installers
           merge-multiple: true
       - name: Write checksums
